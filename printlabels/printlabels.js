@@ -61,6 +61,9 @@ let data = {
 // Columns we expect
 const LabelText = 'LabelText';
 const LabelCount = 'LabelCount';
+const LabelDate = 'LabelDate';
+
+const emptyLabel = {text: "", date: ""};
 
 function arrangeLabels(labels, template, blanks) {
   const pages = [];
@@ -72,7 +75,7 @@ function arrangeLabels(labels, template, blanks) {
       page = [];
     }
     if (i < blanks) {
-      page.push("");
+      page.push(emptyLabel);
     } else {
       const label = labels[i - blanks];
       if (label) {
@@ -81,10 +84,20 @@ function arrangeLabels(labels, template, blanks) {
     }
   }
   while (page.length < template.perPage) {
-    page.push("");
+    page.push(emptyLabel);
   }
   pages.push(page);
   return pages;
+}
+
+function formatDate(val) {
+  if (!val) return '';
+  // Grist Date/DateTime columns return Unix timestamps in seconds.
+  if (typeof val === 'number') {
+    const d = new Date(val * 1000);
+    return d.toLocaleDateString();
+  }
+  return String(val);
 }
 
 function handleError(err) {
@@ -105,12 +118,14 @@ function updateRecords() {
       throw new Error(`Please pick a column to show in the Creator Panel.`);
     }
     const haveCounts = rows[0].hasOwnProperty(LabelCount);
+    const haveDates = rows[0].hasOwnProperty(LabelDate);
     const labels = [];
     for (const r of rows) {
       // parseFloat to be generous about the type of LabelCount. Text will be accepted.
       const count = haveCounts ? parseFloat(r[LabelCount]) : 1;
+      const date = haveDates ? formatDate(r[LabelDate]) : '';
       for (let i = 0; i < count; i++) {
-        labels.push(r[LabelText]);
+        labels.push({text: r[LabelText], date: date});
       }
     }
     data.labels = labels;
@@ -144,6 +159,12 @@ ready(function() {
         name: LabelCount,
         title: "Label count",
         type: "Numeric",
+        optional: true
+      },
+      {
+        name: LabelDate,
+        title: "Label date",
+        type: "Any",
         optional: true
       }
     ]
@@ -179,6 +200,7 @@ ready(function() {
     },
     methods: {
       arrangeLabels,
+      formatDate,
       async save() {
         // Custom save handler to save only when user changed the value.
         await grist.widgetApi.setOption('template', this.template.id);

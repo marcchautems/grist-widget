@@ -54,6 +54,15 @@ body {
   justify-content: center;
   vertical-align: bottom;
   box-shadow: var(--label-outline);
+  position: relative;
+}
+
+.label-date {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 7pt;
+  color: #555;
 }
 
 .labelpage {
