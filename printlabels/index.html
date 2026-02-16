@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="printlabels.css?ver=1">
   </head>
   <body>
-    <div id="app">
+    <div id="app" :style="labelPadStyle">
       <div class="status" v-if="status">
         <template v-if="status === 'waiting'">
           <p>Waiting for data...</p>
@@ -33,6 +33,15 @@
       <div v-show="showOptions" id="options-container" v-on:click="showOptions = false">
         <div id="options-popup" v-on:click.stop>
           <div>Leave initial blanks <input type="number" id="blanks" v-model="blanks" @change="save()"></div>
+          <div class="options-section">Label inner padding (mm)</div>
+          <div class="options-row">
+            <label>Top <input type="number" class="pad-input" v-model.number="padTop" @change="save()" min="0" step="0.5"></label>
+            <label>Bottom <input type="number" class="pad-input" v-model.number="padBottom" @change="save()" min="0" step="0.5"></label>
+          </div>
+          <div class="options-row">
+            <label>Left <input type="number" class="pad-input" v-model.number="padLeft" @change="save()" min="0" step="0.5"></label>
+            <label>Right <input type="number" class="pad-input" v-model.number="padRight" @change="save()" min="0" step="0.5"></label>
+          </div>
         </div>
       </div>
       <template v-if="labels">

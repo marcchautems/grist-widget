@@ -55,7 +55,12 @@ let data = {
   // Blanks, if positive, tells to leave this number of labels blank before starting to populate
   // them with data.
   blanks: 0,
-  rows: null
+  rows: null,
+  // Inner padding of each label in mm.
+  padTop: 2,
+  padBottom: 2,
+  padLeft: 2,
+  padRight: 2
 };
 
 // Columns we expect
@@ -204,10 +209,18 @@ ready(function() {
       // Read saved options.
       data.template = findTemplate(options.template) || defaultTemplate;
       data.blanks = options.blanks || 0;
+      data.padTop = options.padTop != null ? options.padTop : 2;
+      data.padBottom = options.padBottom != null ? options.padBottom : 2;
+      data.padLeft = options.padLeft != null ? options.padLeft : 2;
+      data.padRight = options.padRight != null ? options.padRight : 2;
     } else {
       // Revert to defaults.
       data.template = defaultTemplate;
       data.blanks = 0;
+      data.padTop = 2;
+      data.padBottom = 2;
+      data.padLeft = 2;
+      data.padRight = 2;
     }
   })
   // Update the widget anytime the document data changes.
@@ -227,6 +240,16 @@ ready(function() {
         updateRecords();
       }
     },
+    computed: {
+      labelPadStyle() {
+        return {
+          '--label-pad-top': this.padTop + 'mm',
+          '--label-pad-bottom': this.padBottom + 'mm',
+          '--label-pad-left': this.padLeft + 'mm',
+          '--label-pad-right': this.padRight + 'mm'
+        };
+      }
+    },
     methods: {
       arrangeLabels,
       formatDate,
@@ -234,6 +257,10 @@ ready(function() {
         // Custom save handler to save only when user changed the value.
         await grist.widgetApi.setOption('template', this.template.id);
         await grist.widgetApi.setOption('blanks', this.blanks);
+        await grist.widgetApi.setOption('padTop', this.padTop);
+        await grist.widgetApi.setOption('padBottom', this.padBottom);
+        await grist.widgetApi.setOption('padLeft', this.padLeft);
+        await grist.widgetApi.setOption('padRight', this.padRight);
       }
     },
     updated: () => setTimeout(updateSize, 0),
