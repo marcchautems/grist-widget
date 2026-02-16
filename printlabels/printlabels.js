@@ -63,9 +63,10 @@ const LabelText = 'LabelText';
 const LabelCount = 'LabelCount';
 const LabelDate = 'LabelDate';
 const LabelTopLeft = 'LabelTopLeft';
+const LabelDetail = 'LabelDetail';
 const LabelBottomLeft = 'LabelBottomLeft';
 
-const emptyLabel = {text: "", date: "", topLeft: "", bottomLeft: ""};
+const emptyLabel = {text: "", detail: "", date: "", topLeft: "", bottomLeft: ""};
 
 function arrangeLabels(labels, template, blanks) {
   const pages = [];
@@ -122,6 +123,7 @@ function updateRecords() {
       throw new Error(`Please pick a column to show in the Creator Panel.`);
     }
     const haveCounts = rows[0].hasOwnProperty(LabelCount);
+    const haveDetails = rows[0].hasOwnProperty(LabelDetail);
     const haveDates = rows[0].hasOwnProperty(LabelDate);
     const haveTopLeft = rows[0].hasOwnProperty(LabelTopLeft);
     const haveBottomLeft = rows[0].hasOwnProperty(LabelBottomLeft);
@@ -129,11 +131,12 @@ function updateRecords() {
     for (const r of rows) {
       // parseFloat to be generous about the type of LabelCount. Text will be accepted.
       const count = haveCounts ? parseFloat(r[LabelCount]) : 1;
+      const detail = haveDetails ? (r[LabelDetail] || '') : '';
       const date = haveDates ? formatDate(r[LabelDate]) : '';
       const topLeft = haveTopLeft ? (r[LabelTopLeft] || '') : '';
       const bottomLeft = haveBottomLeft ? (r[LabelBottomLeft] || '') : '';
       for (let i = 0; i < count; i++) {
-        labels.push({text: r[LabelText], date: date, topLeft: topLeft, bottomLeft: bottomLeft});
+        labels.push({text: r[LabelText], detail: detail, date: date, topLeft: topLeft, bottomLeft: bottomLeft});
       }
     }
     data.labels = labels;
@@ -160,8 +163,14 @@ ready(function() {
     columns: [
       {
         name: LabelText,
-        title: "Label text",
+        title: "Label title",
         type: "Text"
+      },
+      {
+        name: LabelDetail,
+        title: "Label detail",
+        type: "Any",
+        optional: true
       },
       {
         name: LabelCount,

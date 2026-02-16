@@ -17,10 +17,18 @@ body {
   color: var(--grist-theme-info, #3b82f6);
 }
 
-.label-content {
+.label-title {
   white-space: pre-wrap;
-  text-align: left;
-  font-size: 11pt;
+  text-align: center;
+  font-size: 12pt;
+  font-weight: bold;
+}
+
+.label-detail {
+  white-space: pre-wrap;
+  text-align: center;
+  font-size: 8pt;
+  margin-top: 2px;
 }
 
 .page-outer {
