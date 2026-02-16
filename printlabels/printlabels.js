@@ -62,8 +62,10 @@ let data = {
 const LabelText = 'LabelText';
 const LabelCount = 'LabelCount';
 const LabelDate = 'LabelDate';
+const LabelTopLeft = 'LabelTopLeft';
+const LabelBottomLeft = 'LabelBottomLeft';
 
-const emptyLabel = {text: "", date: ""};
+const emptyLabel = {text: "", date: "", topLeft: "", bottomLeft: ""};
 
 function arrangeLabels(labels, template, blanks) {
   const pages = [];
@@ -95,7 +97,9 @@ function formatDate(val) {
   // Grist Date/DateTime columns return Unix timestamps in seconds.
   if (typeof val === 'number') {
     const d = new Date(val * 1000);
-    return d.toLocaleDateString();
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    return dd + '-' + mm;
   }
   return String(val);
 }
@@ -119,13 +123,17 @@ function updateRecords() {
     }
     const haveCounts = rows[0].hasOwnProperty(LabelCount);
     const haveDates = rows[0].hasOwnProperty(LabelDate);
+    const haveTopLeft = rows[0].hasOwnProperty(LabelTopLeft);
+    const haveBottomLeft = rows[0].hasOwnProperty(LabelBottomLeft);
     const labels = [];
     for (const r of rows) {
       // parseFloat to be generous about the type of LabelCount. Text will be accepted.
       const count = haveCounts ? parseFloat(r[LabelCount]) : 1;
       const date = haveDates ? formatDate(r[LabelDate]) : '';
+      const topLeft = haveTopLeft ? (r[LabelTopLeft] || '') : '';
+      const bottomLeft = haveBottomLeft ? (r[LabelBottomLeft] || '') : '';
       for (let i = 0; i < count; i++) {
-        labels.push({text: r[LabelText], date: date});
+        labels.push({text: r[LabelText], date: date, topLeft: topLeft, bottomLeft: bottomLeft});
       }
     }
     data.labels = labels;
@@ -164,6 +172,18 @@ ready(function() {
       {
         name: LabelDate,
         title: "Label date",
+        type: "Any",
+        optional: true
+      },
+      {
+        name: LabelTopLeft,
+        title: "Top left text",
+        type: "Any",
+        optional: true
+      },
+      {
+        name: LabelBottomLeft,
+        title: "Bottom left text",
         type: "Any",
         optional: true
       }

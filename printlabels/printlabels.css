@@ -65,6 +65,22 @@ body {
   color: #555;
 }
 
+.label-top-left {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 7pt;
+  color: #555;
+}
+
+.label-bottom-left {
+  position: absolute;
+  bottom: 2px;
+  left: 4px;
+  font-size: 7pt;
+  color: #555;
+}
+
 .labelpage {
   display: flex;
   flex-flow: row wrap;

@@ -41,6 +41,8 @@
             <template v-for="label in page">
               <div class="label" :class="'label-' + template.id">
                 <div class="label-date" v-if="label.date">{{label.date}}</div>
+                <div class="label-top-left" v-if="label.topLeft">{{label.topLeft}}</div>
+                <div class="label-bottom-left" v-if="label.bottomLeft">{{label.bottomLeft}}</div>
                 <div class="label-content">{{label.text}}</div>
               </div>
             </template>
