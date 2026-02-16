@@ -66,7 +66,9 @@ let data = {
   detailSize: 8, detailColor: '#000000', detailBold: false,
   dateSize: 7, dateColor: '#555555', dateBold: false,
   topLeftSize: 7, topLeftColor: '#555555', topLeftBold: false,
-  bottomLeftSize: 7, bottomLeftColor: '#555555', bottomLeftBold: false
+  bottomLeftSize: 7, bottomLeftColor: '#555555', bottomLeftBold: false,
+  // QR code size in mm.
+  qrSize: 10
 };
 
 // Columns we expect
@@ -76,8 +78,9 @@ const LabelDate = 'LabelDate';
 const LabelTopLeft = 'LabelTopLeft';
 const LabelDetail = 'LabelDetail';
 const LabelBottomLeft = 'LabelBottomLeft';
+const LabelQR = 'LabelQR';
 
-const emptyLabel = {text: "", detail: "", date: "", topLeft: "", bottomLeft: ""};
+const emptyLabel = {text: "", detail: "", date: "", topLeft: "", bottomLeft: "", qr: ""};
 
 function arrangeLabels(labels, template, blanks) {
   const pages = [];
@@ -116,6 +119,19 @@ function formatDate(val) {
   return String(val);
 }
 
+function generateQR(text) {
+  if (!text) return '';
+  try {
+    var qr = qrcode(0, 'L');
+    qr.addData(String(text));
+    qr.make();
+    return qr.createDataURL(4, 0);
+  } catch (e) {
+    console.error('QR generation failed', e);
+    return '';
+  }
+}
+
 function handleError(err) {
   console.error('ERROR', err);
   const target = app || data;
@@ -138,6 +154,7 @@ function updateRecords() {
     const haveDates = rows[0].hasOwnProperty(LabelDate);
     const haveTopLeft = rows[0].hasOwnProperty(LabelTopLeft);
     const haveBottomLeft = rows[0].hasOwnProperty(LabelBottomLeft);
+    const haveQR = rows[0].hasOwnProperty(LabelQR);
     const labels = [];
     for (const r of rows) {
       // parseFloat to be generous about the type of LabelCount. Text will be accepted.
@@ -146,8 +163,9 @@ function updateRecords() {
       const date = haveDates ? formatDate(r[LabelDate]) : '';
       const topLeft = haveTopLeft ? (r[LabelTopLeft] || '') : '';
       const bottomLeft = haveBottomLeft ? (r[LabelBottomLeft] || '') : '';
+      const qr = haveQR ? generateQR(r[LabelQR]) : '';
       for (let i = 0; i < count; i++) {
-        labels.push({text: r[LabelText], detail: detail, date: date, topLeft: topLeft, bottomLeft: bottomLeft});
+        labels.push({text: r[LabelText], detail: detail, date: date, topLeft: topLeft, bottomLeft: bottomLeft, qr: qr});
       }
     }
     data.labels = labels;
@@ -206,6 +224,12 @@ ready(function() {
         title: "Bottom left text",
         type: "Any",
         optional: true
+      },
+      {
+        name: LabelQR,
+        title: "QR code link",
+        type: "Any",
+        optional: true
       }
     ]
   });
@@ -235,6 +259,7 @@ ready(function() {
       data.bottomLeftSize = options.bottomLeftSize != null ? options.bottomLeftSize : 7;
       data.bottomLeftColor = options.bottomLeftColor || '#555555';
       data.bottomLeftBold = options.bottomLeftBold != null ? options.bottomLeftBold : false;
+      data.qrSize = options.qrSize != null ? options.qrSize : 10;
     } else {
       // Revert to defaults.
       data.template = defaultTemplate;
@@ -245,6 +270,7 @@ ready(function() {
       data.dateSize = 7; data.dateColor = '#555555'; data.dateBold = false;
       data.topLeftSize = 7; data.topLeftColor = '#555555'; data.topLeftBold = false;
       data.bottomLeftSize = 7; data.bottomLeftColor = '#555555'; data.bottomLeftBold = false;
+      data.qrSize = 10;
     }
   })
   // Update the widget anytime the document data changes.
@@ -285,7 +311,8 @@ ready(function() {
           '--top-left-weight': this.topLeftBold ? 'bold' : 'normal',
           '--bottom-left-size': this.bottomLeftSize + 'pt',
           '--bottom-left-color': this.bottomLeftColor,
-          '--bottom-left-weight': this.bottomLeftBold ? 'bold' : 'normal'
+          '--bottom-left-weight': this.bottomLeftBold ? 'bold' : 'normal',
+          '--qr-size': this.qrSize + 'mm'
         };
       }
     },
@@ -311,6 +338,7 @@ ready(function() {
         for (const k of fontKeys) {
           await grist.widgetApi.setOption(k, this[k]);
         }
+        await grist.widgetApi.setOption('qrSize', this.qrSize);
       }
     },
     updated: () => setTimeout(updateSize, 0),

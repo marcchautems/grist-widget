@@ -99,6 +99,15 @@ body {
   color: var(--bottom-left-color, #555555);
 }
 
+.label-qr {
+  position: absolute;
+  bottom: var(--label-pad-bottom, 2mm);
+  right: var(--label-pad-right, 2mm);
+  width: var(--qr-size, 10mm);
+  height: var(--qr-size, 10mm);
+  image-rendering: pixelated;
+}
+
 .labelpage {
   display: flex;
   flex-flow: row wrap;

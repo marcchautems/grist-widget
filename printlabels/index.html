@@ -8,6 +8,7 @@
     <!-- Uses Vue.js, store.js, and the Grist Plugin API -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.3/vue.min.js"></script>
     <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 
     <script src="printlabels.js?ver=1"></script>
     <link rel="stylesheet" href="printlabels.css?ver=1">
@@ -76,6 +77,10 @@
               <td><input type="checkbox" v-model="bottomLeftBold" @change="save()"></td>
             </tr>
           </table>
+          <div class="options-section">QR code</div>
+          <div class="options-row">
+            <label>Size (mm) <input type="number" class="pad-input" v-model.number="qrSize" @change="save()" min="1" step="1"></label>
+          </div>
         </div>
       </div>
       <template v-if="labels">
@@ -86,6 +91,7 @@
                 <div class="label-date" v-if="label.date">{{label.date}}</div>
                 <div class="label-top-left" v-if="label.topLeft">{{label.topLeft}}</div>
                 <div class="label-bottom-left" v-if="label.bottomLeft">{{label.bottomLeft}}</div>
+                <img class="label-qr" v-if="label.qr" :src="label.qr">
                 <div class="label-title">{{label.text}}</div>
                 <div class="label-detail" v-if="label.detail">{{label.detail}}</div>
               </div>
