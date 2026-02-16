@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="printlabels.css?ver=1">
   </head>
   <body>
-    <div id="app" :style="labelPadStyle">
+    <div id="app" :style="appStyle">
       <div class="status" v-if="status">
         <template v-if="status === 'waiting'">
           <p>Waiting for data...</p>
@@ -42,6 +42,40 @@
             <label>Left <input type="number" class="pad-input" v-model.number="padLeft" @change="save()" min="0" step="0.5"></label>
             <label>Right <input type="number" class="pad-input" v-model.number="padRight" @change="save()" min="0" step="0.5"></label>
           </div>
+          <div class="options-section">Font settings</div>
+          <table class="font-table">
+            <tr><th></th><th>Size (pt)</th><th>Color</th><th>Bold</th></tr>
+            <tr>
+              <td>Title</td>
+              <td><input type="number" class="font-size-input" v-model.number="titleSize" @change="save()" min="1" step="1"></td>
+              <td><input type="color" class="font-color-input" v-model="titleColor" @change="save()"></td>
+              <td><input type="checkbox" v-model="titleBold" @change="save()"></td>
+            </tr>
+            <tr>
+              <td>Detail</td>
+              <td><input type="number" class="font-size-input" v-model.number="detailSize" @change="save()" min="1" step="1"></td>
+              <td><input type="color" class="font-color-input" v-model="detailColor" @change="save()"></td>
+              <td><input type="checkbox" v-model="detailBold" @change="save()"></td>
+            </tr>
+            <tr>
+              <td>Date</td>
+              <td><input type="number" class="font-size-input" v-model.number="dateSize" @change="save()" min="1" step="1"></td>
+              <td><input type="color" class="font-color-input" v-model="dateColor" @change="save()"></td>
+              <td><input type="checkbox" v-model="dateBold" @change="save()"></td>
+            </tr>
+            <tr>
+              <td>Top left</td>
+              <td><input type="number" class="font-size-input" v-model.number="topLeftSize" @change="save()" min="1" step="1"></td>
+              <td><input type="color" class="font-color-input" v-model="topLeftColor" @change="save()"></td>
+              <td><input type="checkbox" v-model="topLeftBold" @change="save()"></td>
+            </tr>
+            <tr>
+              <td>Bottom left</td>
+              <td><input type="number" class="font-size-input" v-model.number="bottomLeftSize" @change="save()" min="1" step="1"></td>
+              <td><input type="color" class="font-color-input" v-model="bottomLeftColor" @change="save()"></td>
+              <td><input type="checkbox" v-model="bottomLeftBold" @change="save()"></td>
+            </tr>
+          </table>
         </div>
       </div>
       <template v-if="labels">

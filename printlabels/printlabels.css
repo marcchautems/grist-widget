@@ -20,14 +20,17 @@ body {
 .label-title {
   white-space: pre-wrap;
   text-align: center;
-  font-size: 12pt;
-  font-weight: bold;
+  font-size: var(--title-size, 12pt);
+  font-weight: var(--title-weight, bold);
+  color: var(--title-color, #000000);
 }
 
 .label-detail {
   white-space: pre-wrap;
   text-align: center;
-  font-size: 8pt;
+  font-size: var(--detail-size, 8pt);
+  font-weight: var(--detail-weight, normal);
+  color: var(--detail-color, #000000);
   margin-top: 2px;
 }
 
@@ -73,24 +76,27 @@ body {
   position: absolute;
   top: var(--label-pad-top, 2mm);
   right: var(--label-pad-right, 2mm);
-  font-size: 7pt;
-  color: #555;
+  font-size: var(--date-size, 7pt);
+  font-weight: var(--date-weight, normal);
+  color: var(--date-color, #555555);
 }
 
 .label-top-left {
   position: absolute;
   top: var(--label-pad-top, 2mm);
   left: var(--label-pad-left, 2mm);
-  font-size: 7pt;
-  color: #555;
+  font-size: var(--top-left-size, 7pt);
+  font-weight: var(--top-left-weight, normal);
+  color: var(--top-left-color, #555555);
 }
 
 .label-bottom-left {
   position: absolute;
   bottom: var(--label-pad-bottom, 2mm);
   left: var(--label-pad-left, 2mm);
-  font-size: 7pt;
-  color: #555;
+  font-size: var(--bottom-left-size, 7pt);
+  font-weight: var(--bottom-left-weight, normal);
+  color: var(--bottom-left-color, #555555);
 }
 
 .labelpage {
@@ -251,6 +257,38 @@ body {
   border: 1px solid var(--grist-theme-decoration, #d9d9d9);
   padding: 4px 8px;
   border-radius: 3px;
+}
+
+.font-table {
+  border-collapse: collapse;
+  font-size: 10pt;
+  margin-top: 4px;
+}
+.font-table th {
+  font-weight: normal;
+  color: var(--grist-theme-secondary, #929299);
+  padding: 2px 6px;
+  text-align: left;
+}
+.font-table td {
+  padding: 2px 6px;
+}
+.font-size-input {
+  width: 3.5em;
+  font-size: 10pt;
+  color: var(--grist-theme-emphasis, #000);
+  background-color: var(--grist-theme-bg-default, #fff);
+  border: 1px solid var(--grist-theme-decoration, #d9d9d9);
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+.font-color-input {
+  width: 28px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--grist-theme-decoration, #d9d9d9);
+  border-radius: 3px;
+  cursor: pointer;
 }
 
 /* Print button (inspired by invoices widget) */

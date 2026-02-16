@@ -60,7 +60,13 @@ let data = {
   padTop: 2,
   padBottom: 2,
   padLeft: 2,
-  padRight: 2
+  padRight: 2,
+  // Font styles per element: size in pt, color as hex, bold as boolean.
+  titleSize: 12, titleColor: '#000000', titleBold: true,
+  detailSize: 8, detailColor: '#000000', detailBold: false,
+  dateSize: 7, dateColor: '#555555', dateBold: false,
+  topLeftSize: 7, topLeftColor: '#555555', topLeftBold: false,
+  bottomLeftSize: 7, bottomLeftColor: '#555555', bottomLeftBold: false
 };
 
 // Columns we expect
@@ -213,14 +219,32 @@ ready(function() {
       data.padBottom = options.padBottom != null ? options.padBottom : 2;
       data.padLeft = options.padLeft != null ? options.padLeft : 2;
       data.padRight = options.padRight != null ? options.padRight : 2;
+      // Font styles
+      data.titleSize = options.titleSize != null ? options.titleSize : 12;
+      data.titleColor = options.titleColor || '#000000';
+      data.titleBold = options.titleBold != null ? options.titleBold : true;
+      data.detailSize = options.detailSize != null ? options.detailSize : 8;
+      data.detailColor = options.detailColor || '#000000';
+      data.detailBold = options.detailBold != null ? options.detailBold : false;
+      data.dateSize = options.dateSize != null ? options.dateSize : 7;
+      data.dateColor = options.dateColor || '#555555';
+      data.dateBold = options.dateBold != null ? options.dateBold : false;
+      data.topLeftSize = options.topLeftSize != null ? options.topLeftSize : 7;
+      data.topLeftColor = options.topLeftColor || '#555555';
+      data.topLeftBold = options.topLeftBold != null ? options.topLeftBold : false;
+      data.bottomLeftSize = options.bottomLeftSize != null ? options.bottomLeftSize : 7;
+      data.bottomLeftColor = options.bottomLeftColor || '#555555';
+      data.bottomLeftBold = options.bottomLeftBold != null ? options.bottomLeftBold : false;
     } else {
       // Revert to defaults.
       data.template = defaultTemplate;
       data.blanks = 0;
-      data.padTop = 2;
-      data.padBottom = 2;
-      data.padLeft = 2;
-      data.padRight = 2;
+      data.padTop = 2; data.padBottom = 2; data.padLeft = 2; data.padRight = 2;
+      data.titleSize = 12; data.titleColor = '#000000'; data.titleBold = true;
+      data.detailSize = 8; data.detailColor = '#000000'; data.detailBold = false;
+      data.dateSize = 7; data.dateColor = '#555555'; data.dateBold = false;
+      data.topLeftSize = 7; data.topLeftColor = '#555555'; data.topLeftBold = false;
+      data.bottomLeftSize = 7; data.bottomLeftColor = '#555555'; data.bottomLeftBold = false;
     }
   })
   // Update the widget anytime the document data changes.
@@ -241,12 +265,27 @@ ready(function() {
       }
     },
     computed: {
-      labelPadStyle() {
+      appStyle() {
         return {
           '--label-pad-top': this.padTop + 'mm',
           '--label-pad-bottom': this.padBottom + 'mm',
           '--label-pad-left': this.padLeft + 'mm',
-          '--label-pad-right': this.padRight + 'mm'
+          '--label-pad-right': this.padRight + 'mm',
+          '--title-size': this.titleSize + 'pt',
+          '--title-color': this.titleColor,
+          '--title-weight': this.titleBold ? 'bold' : 'normal',
+          '--detail-size': this.detailSize + 'pt',
+          '--detail-color': this.detailColor,
+          '--detail-weight': this.detailBold ? 'bold' : 'normal',
+          '--date-size': this.dateSize + 'pt',
+          '--date-color': this.dateColor,
+          '--date-weight': this.dateBold ? 'bold' : 'normal',
+          '--top-left-size': this.topLeftSize + 'pt',
+          '--top-left-color': this.topLeftColor,
+          '--top-left-weight': this.topLeftBold ? 'bold' : 'normal',
+          '--bottom-left-size': this.bottomLeftSize + 'pt',
+          '--bottom-left-color': this.bottomLeftColor,
+          '--bottom-left-weight': this.bottomLeftBold ? 'bold' : 'normal'
         };
       }
     },
@@ -261,6 +300,17 @@ ready(function() {
         await grist.widgetApi.setOption('padBottom', this.padBottom);
         await grist.widgetApi.setOption('padLeft', this.padLeft);
         await grist.widgetApi.setOption('padRight', this.padRight);
+        // Font styles
+        const fontKeys = [
+          'titleSize', 'titleColor', 'titleBold',
+          'detailSize', 'detailColor', 'detailBold',
+          'dateSize', 'dateColor', 'dateBold',
+          'topLeftSize', 'topLeftColor', 'topLeftBold',
+          'bottomLeftSize', 'bottomLeftColor', 'bottomLeftBold'
+        ];
+        for (const k of fontKeys) {
+          await grist.widgetApi.setOption(k, this[k]);
+        }
       }
     },
     updated: () => setTimeout(updateSize, 0),
