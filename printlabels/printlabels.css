@@ -132,12 +132,12 @@ body {
   --page-height: 297mm;
 }
 .page-a4labels24 {
-  --vmargin: 12.9mm;
-  --hmargin: 9.75mm;
+  --vmargin: 13.3mm;
+  --hmargin: 7.65mm;
 }
 .label-a4labels24 {
-  height: 33.9mm;
-  width: 63.5mm;
+  height: 33.8mm;
+  width: 64.6mm;
 }
 
 .header {
@@ -229,8 +229,6 @@ div.print a:hover {
   .page-outer {
     overflow: visible !important;
     page-break-after: always;
-    width: 100%;
-    height: 100%;
   }
   .page-outer:last-child {
     page-break-after: auto;

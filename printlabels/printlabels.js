@@ -32,7 +32,7 @@ const templates = [{
   perPage: 80,
 }, {
   id: 'a4labels24',
-  name: 'A4 - 24 per sheet (33.9mm x 63.5mm)',
+  name: 'A4 - 24 per sheet (33.9mm x 63.5mm) Avery3658',
   perPage: 24,
 }];
 
