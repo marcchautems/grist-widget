@@ -175,20 +175,55 @@ body {
   border-radius: 3px;
 }
 
+/* Print button (inspired by invoices widget) */
+div.print {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  z-index: 10;
+}
+div.print a {
+  background: #16B378;
+  display: block;
+  font-size: 200%;
+  color: white;
+  text-decoration: none;
+  padding: 0.25em 0.5em 0.25em 0.25em;
+  border-top-right-radius: 0.5em;
+  text-transform: uppercase;
+}
+div.print a:hover {
+  background: #4682B4;
+}
+
 @media print {
   body {
     --label-outline: none;
   }
-  html, body, #app, .page-outer, #content, #content-wrap {
-    height: 100%;
+  html, body, #app {
+    height: auto !important;
     width: 100%;
     margin: 0 !important;
     padding: 0;
+    overflow: visible !important;
   }
   @page {
     margin: 0 !important;
   }
-  .header, #labeltype, #options-container {
-    display: none;
+  .page-outer {
+    overflow: visible !important;
+    page-break-after: always;
+    width: 100%;
+    height: 100%;
+  }
+  .page-outer:last-child {
+    page-break-after: auto;
+  }
+  .header, #labeltype, #options-container, div.print {
+    display: none !important;
+  }
+  .label {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 }
