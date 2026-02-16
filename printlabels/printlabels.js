@@ -30,6 +30,10 @@ const templates = [{
   id: 'labels80',
   name: '80 per sheet (1/2" x 1-3/4")',
   perPage: 80,
+}, {
+  id: 'a4labels24',
+  name: 'A4 - 24 per sheet (33.9mm x 63.5mm)',
+  perPage: 24,
 }];
 
 // For backward compatibility we will read starting template from a URL's hash or store, but

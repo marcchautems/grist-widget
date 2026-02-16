@@ -24,18 +24,20 @@ body {
 }
 
 .page-outer {
+  --page-width: 8.5in;
+  --page-height: 11in;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 8.5in;
-  height: 11in;
+  width: var(--page-width);
+  height: var(--page-height);
 }
 
 @media not print {
   .page-outer {
     overflow: hidden;
-    width: calc(8.5in * var(--page-scaling, 1));
-    height: calc(11in * var(--page-scaling, 1));
+    width: calc(var(--page-width) * var(--page-scaling, 1));
+    height: calc(var(--page-height) * var(--page-scaling, 1));
   }
   .labelpage {
     transform: scale(var(--page-scaling, 1));
@@ -60,10 +62,10 @@ body {
   align-items: flex-start;
   justify-content: space-between;
   align-content: space-between;
-  height: calc(11in - 2 * var(--vmargin, 0));
-  width: calc(8.5in - 2 * var(--hmargin, 0));
-  min-height: calc(11in - 2 * var(--vmargin, 0));
-  min-width: calc(8.5in - 2 * var(--hmargin, 0));
+  height: calc(var(--page-height) - 2 * var(--vmargin, 0));
+  width: calc(var(--page-width) - 2 * var(--hmargin, 0));
+  min-height: calc(var(--page-height) - 2 * var(--vmargin, 0));
+  min-width: calc(var(--page-width) - 2 * var(--hmargin, 0));
 }
 
 /*
@@ -122,6 +124,20 @@ body {
 .label-labels80 {
   height: 0.5in;
   width: 1.75in;
+}
+
+/* A4 templates (210mm x 297mm) */
+.outer-a4labels24 {
+  --page-width: 210mm;
+  --page-height: 297mm;
+}
+.page-a4labels24 {
+  --vmargin: 12.9mm;
+  --hmargin: 9.75mm;
+}
+.label-a4labels24 {
+  height: 33.9mm;
+  width: 63.5mm;
 }
 
 .header {
