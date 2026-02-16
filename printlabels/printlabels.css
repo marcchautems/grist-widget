@@ -71,24 +71,24 @@ body {
 
 .label-date {
   position: absolute;
-  top: 2px;
-  right: 4px;
+  top: var(--label-pad-top, 2mm);
+  right: var(--label-pad-right, 2mm);
   font-size: 7pt;
   color: #555;
 }
 
 .label-top-left {
   position: absolute;
-  top: 2px;
-  left: 4px;
+  top: var(--label-pad-top, 2mm);
+  left: var(--label-pad-left, 2mm);
   font-size: 7pt;
   color: #555;
 }
 
 .label-bottom-left {
   position: absolute;
-  bottom: 2px;
-  left: 4px;
+  bottom: var(--label-pad-bottom, 2mm);
+  left: var(--label-pad-left, 2mm);
   font-size: 7pt;
   color: #555;
 }
