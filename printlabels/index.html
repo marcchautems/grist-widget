@@ -53,6 +53,12 @@
               <td><input type="checkbox" v-model="titleBold" @change="save()"></td>
             </tr>
             <tr>
+              <td>Subtitle</td>
+              <td><input type="number" class="font-size-input" v-model.number="subtitleSize" @change="save()" min="1" step="1"></td>
+              <td><input type="color" class="font-color-input" v-model="subtitleColor" @change="save()"></td>
+              <td><input type="checkbox" v-model="subtitleBold" @change="save()"></td>
+            </tr>
+            <tr>
               <td>Detail</td>
               <td><input type="number" class="font-size-input" v-model.number="detailSize" @change="save()" min="1" step="1"></td>
               <td><input type="color" class="font-color-input" v-model="detailColor" @change="save()"></td>
@@ -93,6 +99,7 @@
                 <div class="label-bottom-left" v-if="label.bottomLeft">{{label.bottomLeft}}</div>
                 <img class="label-qr" v-if="label.qr" :src="label.qr">
                 <div class="label-title">{{label.text}}</div>
+                <div class="label-subtitle" v-if="label.subtitle">{{label.subtitle}}</div>
                 <div class="label-detail" v-if="label.detail">{{label.detail}}</div>
               </div>
             </template>

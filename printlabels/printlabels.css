@@ -25,6 +25,15 @@ body {
   color: var(--title-color, #000000);
 }
 
+.label-subtitle {
+  white-space: pre-wrap;
+  text-align: center;
+  font-size: var(--subtitle-size, 10pt);
+  font-weight: var(--subtitle-weight, normal);
+  color: var(--subtitle-color, #000000);
+  margin-top: 2px;
+}
+
 .label-detail {
   white-space: pre-wrap;
   text-align: center;

@@ -63,6 +63,7 @@ let data = {
   padRight: 2,
   // Font styles per element: size in pt, color as hex, bold as boolean.
   titleSize: 12, titleColor: '#000000', titleBold: true,
+  subtitleSize: 10, subtitleColor: '#000000', subtitleBold: false,
   detailSize: 8, detailColor: '#000000', detailBold: false,
   dateSize: 7, dateColor: '#555555', dateBold: false,
   topLeftSize: 7, topLeftColor: '#555555', topLeftBold: false,
@@ -79,8 +80,9 @@ const LabelTopLeft = 'LabelTopLeft';
 const LabelDetail = 'LabelDetail';
 const LabelBottomLeft = 'LabelBottomLeft';
 const LabelQR = 'LabelQR';
+const LabelSubtitle = 'LabelSubtitle';
 
-const emptyLabel = {text: "", detail: "", date: "", topLeft: "", bottomLeft: "", qr: ""};
+const emptyLabel = {text: "", subtitle: "", detail: "", date: "", topLeft: "", bottomLeft: "", qr: ""};
 
 function arrangeLabels(labels, template, blanks) {
   const pages = [];
@@ -150,6 +152,7 @@ function updateRecords() {
       throw new Error(`Please pick a column to show in the Creator Panel.`);
     }
     const haveCounts = rows[0].hasOwnProperty(LabelCount);
+    const haveSubtitles = rows[0].hasOwnProperty(LabelSubtitle);
     const haveDetails = rows[0].hasOwnProperty(LabelDetail);
     const haveDates = rows[0].hasOwnProperty(LabelDate);
     const haveTopLeft = rows[0].hasOwnProperty(LabelTopLeft);
@@ -159,13 +162,14 @@ function updateRecords() {
     for (const r of rows) {
       // parseFloat to be generous about the type of LabelCount. Text will be accepted.
       const count = haveCounts ? parseFloat(r[LabelCount]) : 1;
+      const subtitle = haveSubtitles ? (r[LabelSubtitle] || '') : '';
       const detail = haveDetails ? (r[LabelDetail] || '') : '';
       const date = haveDates ? formatDate(r[LabelDate]) : '';
       const topLeft = haveTopLeft ? (r[LabelTopLeft] || '') : '';
       const bottomLeft = haveBottomLeft ? (r[LabelBottomLeft] || '') : '';
       const qr = haveQR ? generateQR(r[LabelQR]) : '';
       for (let i = 0; i < count; i++) {
-        labels.push({text: r[LabelText], detail: detail, date: date, topLeft: topLeft, bottomLeft: bottomLeft, qr: qr});
+        labels.push({text: r[LabelText], subtitle: subtitle, detail: detail, date: date, topLeft: topLeft, bottomLeft: bottomLeft, qr: qr});
       }
     }
     data.labels = labels;
@@ -226,6 +230,12 @@ ready(function() {
         optional: true
       },
       {
+        name: LabelSubtitle,
+        title: "Label subtitle",
+        type: "Any",
+        optional: true
+      },
+      {
         name: LabelQR,
         title: "QR code link",
         type: "Any",
@@ -247,6 +257,9 @@ ready(function() {
       data.titleSize = options.titleSize != null ? options.titleSize : 12;
       data.titleColor = options.titleColor || '#000000';
       data.titleBold = options.titleBold != null ? options.titleBold : true;
+      data.subtitleSize = options.subtitleSize != null ? options.subtitleSize : 10;
+      data.subtitleColor = options.subtitleColor || '#000000';
+      data.subtitleBold = options.subtitleBold != null ? options.subtitleBold : false;
       data.detailSize = options.detailSize != null ? options.detailSize : 8;
       data.detailColor = options.detailColor || '#000000';
       data.detailBold = options.detailBold != null ? options.detailBold : false;
@@ -266,6 +279,7 @@ ready(function() {
       data.blanks = 0;
       data.padTop = 2; data.padBottom = 2; data.padLeft = 2; data.padRight = 2;
       data.titleSize = 12; data.titleColor = '#000000'; data.titleBold = true;
+      data.subtitleSize = 10; data.subtitleColor = '#000000'; data.subtitleBold = false;
       data.detailSize = 8; data.detailColor = '#000000'; data.detailBold = false;
       data.dateSize = 7; data.dateColor = '#555555'; data.dateBold = false;
       data.topLeftSize = 7; data.topLeftColor = '#555555'; data.topLeftBold = false;
@@ -300,6 +314,9 @@ ready(function() {
           '--title-size': this.titleSize + 'pt',
           '--title-color': this.titleColor,
           '--title-weight': this.titleBold ? 'bold' : 'normal',
+          '--subtitle-size': this.subtitleSize + 'pt',
+          '--subtitle-color': this.subtitleColor,
+          '--subtitle-weight': this.subtitleBold ? 'bold' : 'normal',
           '--detail-size': this.detailSize + 'pt',
           '--detail-color': this.detailColor,
           '--detail-weight': this.detailBold ? 'bold' : 'normal',
@@ -330,6 +347,7 @@ ready(function() {
         // Font styles
         const fontKeys = [
           'titleSize', 'titleColor', 'titleBold',
+          'subtitleSize', 'subtitleColor', 'subtitleBold',
           'detailSize', 'detailColor', 'detailBold',
           'dateSize', 'dateColor', 'dateBold',
           'topLeftSize', 'topLeftColor', 'topLeftBold',
