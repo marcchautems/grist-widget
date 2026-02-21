@@ -87,6 +87,11 @@
           <div class="options-row">
             <label>Size (mm) <input type="number" class="pad-input" v-model.number="qrSize" @change="save()" min="1" step="1"></label>
           </div>
+          <div class="options-section">Center block position</div>
+          <div class="options-row">
+            <label>Vertical (mm) <input type="number" class="pad-input" v-model.number="centerOffset" @change="save()" step="0.5"></label>
+            <label>Horizontal (mm) <input type="number" class="pad-input" v-model.number="centerHOffset" @change="save()" step="0.5"></label>
+          </div>
         </div>
       </div>
       <template v-if="labels">
@@ -98,9 +103,11 @@
                 <div class="label-top-left" v-if="label.topLeft">{{label.topLeft}}</div>
                 <div class="label-bottom-left" v-if="label.bottomLeft">{{label.bottomLeft}}</div>
                 <img class="label-qr" v-if="label.qr" :src="label.qr">
-                <div class="label-title">{{label.text}}</div>
-                <div class="label-subtitle" v-if="label.subtitle">{{label.subtitle}}</div>
-                <div class="label-detail" v-if="label.detail">{{label.detail}}</div>
+                <div class="label-center">
+                  <div class="label-title">{{label.text}}</div>
+                  <div class="label-subtitle" v-if="label.subtitle">{{label.subtitle}}</div>
+                  <div class="label-detail" v-if="label.detail">{{label.detail}}</div>
+                </div>
               </div>
             </template>
           </div>

@@ -17,6 +17,13 @@ body {
   color: var(--grist-theme-info, #3b82f6);
 }
 
+.label-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translate(var(--center-hoffset, 0mm), var(--center-offset, 0mm));
+}
+
 .label-title {
   white-space: pre-wrap;
   text-align: center;

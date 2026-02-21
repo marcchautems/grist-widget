@@ -69,7 +69,11 @@ let data = {
   topLeftSize: 7, topLeftColor: '#555555', topLeftBold: false,
   bottomLeftSize: 7, bottomLeftColor: '#555555', bottomLeftBold: false,
   // QR code size in mm.
-  qrSize: 10
+  qrSize: 10,
+  // Vertical offset of the center block in mm (positive = toward top, negative = toward bottom).
+  centerOffset: 0,
+  // Horizontal offset of the center block in mm (positive = toward right, negative = toward left).
+  centerHOffset: 0
 };
 
 // Columns we expect
@@ -273,6 +277,8 @@ ready(function() {
       data.bottomLeftColor = options.bottomLeftColor || '#555555';
       data.bottomLeftBold = options.bottomLeftBold != null ? options.bottomLeftBold : false;
       data.qrSize = options.qrSize != null ? options.qrSize : 10;
+      data.centerOffset = options.centerOffset != null ? options.centerOffset : 0;
+      data.centerHOffset = options.centerHOffset != null ? options.centerHOffset : 0;
     } else {
       // Revert to defaults.
       data.template = defaultTemplate;
@@ -285,6 +291,8 @@ ready(function() {
       data.topLeftSize = 7; data.topLeftColor = '#555555'; data.topLeftBold = false;
       data.bottomLeftSize = 7; data.bottomLeftColor = '#555555'; data.bottomLeftBold = false;
       data.qrSize = 10;
+      data.centerOffset = 0;
+      data.centerHOffset = 0;
     }
   })
   // Update the widget anytime the document data changes.
@@ -329,7 +337,9 @@ ready(function() {
           '--bottom-left-size': this.bottomLeftSize + 'pt',
           '--bottom-left-color': this.bottomLeftColor,
           '--bottom-left-weight': this.bottomLeftBold ? 'bold' : 'normal',
-          '--qr-size': this.qrSize + 'mm'
+          '--qr-size': this.qrSize + 'mm',
+          '--center-offset': (-this.centerOffset) + 'mm',
+          '--center-hoffset': this.centerHOffset + 'mm'
         };
       }
     },
@@ -357,6 +367,8 @@ ready(function() {
           await grist.widgetApi.setOption(k, this[k]);
         }
         await grist.widgetApi.setOption('qrSize', this.qrSize);
+        await grist.widgetApi.setOption('centerOffset', this.centerOffset);
+        await grist.widgetApi.setOption('centerHOffset', this.centerHOffset);
       }
     },
     updated: () => setTimeout(updateSize, 0),
