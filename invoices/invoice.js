@@ -89,18 +89,54 @@ const data = {
 };
 let app = undefined;
 
-// Cache of the full sales_merged table (columnar format from fetchTable).
+// Cache of fetched tables (columnar format from fetchTable).
 let salesMergedTable = null;
+let storesTable = null;
+let customersTable = null;
 let currentRow = null;
 let currentMapping = null;
 
 async function fetchSalesMerged() {
   try {
-    salesMergedTable = await grist.docApi.fetchTable('sales_merged');
+    salesMergedTable = await grist.docApi.fetchTable('Sales_merged');
     console.log('sales_merged fetched, columns:', Object.keys(salesMergedTable));
   } catch (e) {
     console.error('fetchSalesMerged failed:', e);
   }
+}
+
+async function fetchStores() {
+  try {
+    storesTable = await grist.docApi.fetchTable('Stores');
+    console.log('stores fetched, columns:', Object.keys(storesTable));
+  } catch (e) {
+    console.error('fetchStores failed:', e);
+  }
+}
+
+async function fetchCustomers() {
+  try {
+    customersTable = await grist.docApi.fetchTable('Customers');
+    console.log('customers fetched, columns:', Object.keys(customersTable));
+    console.log('customers table data:', JSON.stringify(customersTable));
+  } catch (e) {
+    console.error('fetchCustomers failed:', e);
+  }
+}
+
+// Generic lookup: given a columnar table and a row id, return a plain object with all fields.
+// If id is already an object (legacy RECORD expansion), return it as-is.
+function getRowById(table, id) {
+  if (!id) return null;
+  if (typeof id === 'object') return id;
+  if (!table) return null;
+  const idx = table.id.indexOf(id);
+  if (idx === -1) return null;
+  const result = {};
+  for (const col of Object.keys(table)) {
+    result[col] = table[col][idx];
+  }
+  return result;
 }
 
 function getDetailsForOrder(orderId) {
@@ -213,22 +249,18 @@ let row_donnees = ''
     }
     // Fetch line items from sales_merged, filtering by the order's row id.
     row.detailed_sales = getDetailsForOrder(row.id);
-    console.log("GOT...", JSON.stringify(row));
-    if (row.References) {
-      try {
-        Object.assign(row, row.References);
-        
-      } catch (err) {
-        throw new Error('Could not understand References column. ' + err);
-      }
-    }
+    // Look up store and customer from their respective tables using integer row IDs.
+    console.log('row.store raw:', row.store, 'storesTable ready:', !!storesTable);
+    console.log('row.customer raw:', row.customer, 'customersTable ready:', !!customersTable);
+    row.store = getRowById(storesTable, row.store) || row.store;
+    row.customer = getRowById(customersTable, row.customer) || row.customer;
 
      
 
      
     // Add some guidance about columns.
     const want = new Set(Object.keys(addDemo({}))); // Tout ce que nous donnons comme données dans addDemo (voir ci-dessous est "wanted" dans le invoice)
-    const accepted = new Set(['References']); // ??
+    const accepted = new Set();
     const importance = ['order_ID', 'customer', 'details', 'Total', 'Invoicer', 'Due', 
                         'order_date', 'Subtotal', 'Deduction', 'Taxes', 'Note', 'Paid']; // Sert uniquement à donner un ordre dans le helper
     
@@ -248,9 +280,6 @@ let row_donnees = ''
       }
       if (recognized.length > 0) {
         help.recognized = prepareList(recognized);
-      }
-      if (!seen.has('References') && !(row.Issued || row.Due)) {
-        row.SuggestReferencesColumn = true;
       }
     }
 
@@ -273,7 +302,7 @@ let row_donnees = ''
     for (const key of want) {
       Vue.delete(data.invoice, key); // Pourquoi ça ???
     }
-    for (const key of ['Help', 'SuggestReferencesColumn', 'References']) {
+    for (const key of ['Help', 'SuggestReferencesColumn']) {
       Vue.delete(data.invoice, key);
     }
 
@@ -303,18 +332,24 @@ ready(function() {
    columns:  [{name: 'order_id', type: 'Text'},
               {name: 'order_sales_sum_final'},
               {name: 'order_date', type: 'Date'},
-              {name:'store', type:"Ref"},
-              {name: 'customer', type: "Ref"},
-              {name: 'References'}]
+              {name:'store', optional: true},
+              {name: 'customer', optional: true}]
 }); // Pour dire à Grist que c'est prêt. Avant: sans les options
 
   fetchSalesMerged(); // Initial load of the sales_merged table (after grist.ready).
+  fetchStores();
+  fetchCustomers();
 
   grist.onRecord((row, mapping) => {  //Crée tout le tsouin tsouin à balancer au HTML, à chaque évenement "onRecord"
     currentRow = row;
     currentMapping = mapping;
-    if (!salesMergedTable) {
-      fetchSalesMerged().then(() => updateInvoice(row, mapping)).catch(() => updateInvoice(row, mapping));
+    const allReady = salesMergedTable && storesTable && customersTable;
+    if (!allReady) {
+      Promise.all([
+        salesMergedTable  ? Promise.resolve() : fetchSalesMerged(),
+        storesTable       ? Promise.resolve() : fetchStores(),
+        customersTable    ? Promise.resolve() : fetchCustomers(),
+      ]).then(() => updateInvoice(row, mapping)).catch(() => updateInvoice(row, mapping));
     } else {
       updateInvoice(row, mapping);
     }
@@ -325,7 +360,7 @@ ready(function() {
   grist.on('message', msg => {
     // Re-fetch sales_merged whenever data changes so line items stay current.
     if (msg.dataChange) {
-      fetchSalesMerged().then(() => {
+      Promise.all([fetchSalesMerged(), fetchStores(), fetchCustomers()]).then(() => {
         if (currentRow) updateInvoice(currentRow, currentMapping);
       });
     }
