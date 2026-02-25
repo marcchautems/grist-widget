@@ -89,6 +89,33 @@ const data = {
 };
 let app = undefined;
 
+// Cache of the full sales_merged table (columnar format from fetchTable).
+let salesMergedTable = null;
+let currentRow = null;
+let currentMapping = null;
+
+async function fetchSalesMerged() {
+  salesMergedTable = await grist.docApi.fetchTable('sales_merged');
+}
+
+function getDetailsForOrder(orderId) {
+  if (!salesMergedTable) return [];
+  const t = salesMergedTable;
+  const rows = [];
+  for (let i = 0; i < t.id.length; i++) {
+    if (t.order_id[i] === orderId) {
+      rows.push({
+        product_format_clientside: t.product_format_clientside[i],
+        unit_price_final:          t.unit_price_final[i],
+        UI_price_format:           t.UI_price_format ? t.UI_price_format[i] : null,
+        quantity:                  t.quantity[i],
+        total_price_final:         t.total_price_final[i],
+      });
+    }
+  }
+  return rows;
+}
+
 Vue.filter('currency', formatNumberAsCHF)
 function formatNumberAsCHF(value) {
   if (typeof value !== "number") {
@@ -179,6 +206,8 @@ let row_donnees = ''
     if (row === null) {
       throw new Error("(No data - not on row - please add or select a row)");
     }
+    // Fetch line items from sales_merged, filtering by the order's row id.
+    row.details = getDetailsForOrder(row.id);
     console.log("GOT...", JSON.stringify(row));
     if (row.References) {
       try {
@@ -264,21 +293,36 @@ ready(function() {
   // Update the invoice anytime the document data changes.
   
   
+  fetchSalesMerged(); // Initial load of the sales_merged table.
+
   grist.ready({ // On est obligé de mapper TOUTES les colonnes utiles dans le widget (grist core code)
    columns:  [{name: 'order_id', type: 'Text'},
               {name: 'order_sales_sum_final'},
               {name: 'order_date', type: 'Date'},
               {name:'store', type:"Ref"},
               {name: 'customer', type: "Ref"},
-              {name: 'details', type:"RefList"},
               {name: 'References'}]
 }); // Pour dire à Grist que c'est prêt. Avant: sans les options
   
-  grist.onRecord(updateInvoice);  //Crée tout le tsouin tsouin à balancer au HTML, à chaque évenement "onRecord"
+  grist.onRecord((row, mapping) => {  //Crée tout le tsouin tsouin à balancer au HTML, à chaque évenement "onRecord"
+    currentRow = row;
+    currentMapping = mapping;
+    if (!salesMergedTable) {
+      fetchSalesMerged().then(() => updateInvoice(row, mapping));
+    } else {
+      updateInvoice(row, mapping);
+    }
+  });
 
 
   // Monitor status so we can give user advice.
   grist.on('message', msg => {
+    // Re-fetch sales_merged whenever data changes so line items stay current.
+    if (msg.dataChange) {
+      fetchSalesMerged().then(() => {
+        if (currentRow) updateInvoice(currentRow, currentMapping);
+      });
+    }
     // If we are told about a table but not which row to access, check the
     // number of rows.  Currently if the table is empty, and "select by" is
     // not set, onRecord() will never be called.
