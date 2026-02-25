@@ -59,8 +59,8 @@ function addDemo(row) { // Allows to give default values if the data isn't compl
       postal_code: 'XXXX'
     }
   }
-  if (!row.details) {
-    row.details = [
+  if (!row.detailed_sales) {
+    row.detailed_sales = [
       {
         product_format: 'Pas darticle dispo',
         product_format_clientside: 'problem',
@@ -95,7 +95,12 @@ let currentRow = null;
 let currentMapping = null;
 
 async function fetchSalesMerged() {
-  salesMergedTable = await grist.docApi.fetchTable('sales_merged');
+  try {
+    salesMergedTable = await grist.docApi.fetchTable('sales_merged');
+    console.log('sales_merged fetched, columns:', Object.keys(salesMergedTable));
+  } catch (e) {
+    console.error('fetchSalesMerged failed:', e);
+  }
 }
 
 function getDetailsForOrder(orderId) {
@@ -207,7 +212,7 @@ let row_donnees = ''
       throw new Error("(No data - not on row - please add or select a row)");
     }
     // Fetch line items from sales_merged, filtering by the order's row id.
-    row.details = getDetailsForOrder(row.id);
+    row.detailed_sales = getDetailsForOrder(row.id);
     console.log("GOT...", JSON.stringify(row));
     if (row.References) {
       try {
@@ -276,7 +281,7 @@ let row_donnees = ''
     data.invoice = Object.assign({}, data.invoice, row);
     
     console.log(JSON.stringify(row));
-    console.log(JSON.stringify(row.details[0]));
+    console.log(JSON.stringify(row.detailed_sales[0]));
 
 
     // Make invoice information available for debugging.
@@ -293,9 +298,8 @@ ready(function() {
   // Update the invoice anytime the document data changes.
   
   
-  fetchSalesMerged(); // Initial load of the sales_merged table.
-
   grist.ready({ // On est obligé de mapper TOUTES les colonnes utiles dans le widget (grist core code)
+   requiredAccess: 'read table',
    columns:  [{name: 'order_id', type: 'Text'},
               {name: 'order_sales_sum_final'},
               {name: 'order_date', type: 'Date'},
@@ -303,12 +307,14 @@ ready(function() {
               {name: 'customer', type: "Ref"},
               {name: 'References'}]
 }); // Pour dire à Grist que c'est prêt. Avant: sans les options
-  
+
+  fetchSalesMerged(); // Initial load of the sales_merged table (after grist.ready).
+
   grist.onRecord((row, mapping) => {  //Crée tout le tsouin tsouin à balancer au HTML, à chaque évenement "onRecord"
     currentRow = row;
     currentMapping = mapping;
     if (!salesMergedTable) {
-      fetchSalesMerged().then(() => updateInvoice(row, mapping));
+      fetchSalesMerged().then(() => updateInvoice(row, mapping)).catch(() => updateInvoice(row, mapping));
     } else {
       updateInvoice(row, mapping);
     }
