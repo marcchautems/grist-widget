@@ -1,12 +1,5 @@
-body {
-  font-family: Sans-Serif;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 5px;
-}
-
 a {
-  color: #0000EE;
+  color: #0000EE; 
 }
 
 .invoice {
@@ -16,7 +9,7 @@ a {
 }
 
 .meta {
-  color: #ff8000;
+  color: #92AB4E;
 }
 
 .header .title {
@@ -37,8 +30,10 @@ a {
 }
 
 .supplier {
-  color: #4682B4;
+  /* color: #92AB4E; // Couleur du texte de l'adresse du fournisseur, p.ex. */
   display: block;
+  /*text-align: left; PAS OUF COMME DESIGN */
+  width: 40%; /* permet de ne pas faire un retour à la ligne pour le mail, qui est trop long */
 }
 
 .block {
@@ -50,7 +45,7 @@ a {
   padding: 1px;
   margin-top: 1em;
   margin-bottom: 1em;
-  background: #ff8000;
+  background: #92AB4E; /*couleur principale des boites (#ff8000 = orange, #92AB4E = vert LFC; #8d9e5e) */
   -webkit-print-color-adjust: exact !important;
   color-adjust: exact !important;
 }
@@ -68,7 +63,7 @@ a {
 
 table.items {
   width: 100%;
-  border: 1px solid #ff8000;
+  border: 1px solid #92AB4E;
   border-collapse: collapse;
 }
 
@@ -83,6 +78,7 @@ table.items th {
 table.items td {
   background-color: white;
   padding: 4px;
+  text-align: left;
 }
 
 .client .title, .summary .title, table.items th, .help .title {
@@ -99,6 +95,9 @@ table.items td {
 }
 
 .address {
+  /*display: flex;
+  justify-content: flex-start NE PAS UTILISER CA, CAR RENDU FOIREUX */
+  text-align:left;
   padding-bottom: 1em;
 }
 
@@ -110,7 +109,7 @@ div.date-tag {
 div.top {
   display: flex;
   width: 100%;
-  padding: 0px;
+  padding: 1px;
   justify-content: space-between;
 }
 
@@ -119,6 +118,8 @@ div.summary {
   width: 100%;
   padding: 0px;
   align-items: flex-end;
+  justify-content: flex-end;
+  background: none;
 }
 
 div.summary .part, div.summary .total {
@@ -132,9 +133,11 @@ div.summary .part {
 
 div.summary .total {
   display: block;
-  flex-grow: 1;
-  background: #000080;
+  background: #92AB4E;
   font-size: 140%;
+  text-align: right;
+  align-items: flex-end;
+  width: 30%;
 }
 
 div.summary {
@@ -158,19 +161,61 @@ div.summary::after {
 }
 
 .phone::before {
-  content: "\260e";
+  content: "\260e"; // Code pour téléphone: \260e; website: 1F310
   margin-right: 0.5em;
 }
 
+/* VARIANTE DU WEBSITE POUR SIMPLE LOGO
+.website::before {
+  content: "\1f310";
+  margin-right: 0.5em;
+}
+*/
+.website {
+  display: flex;
+  align-items: center;
+}
+
+.website-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 0.5em;
+}
+
+/* .website::before {
+  content: "";
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 0.5em;
+
+  background-image: url("https://raw.githubusercontent.com/Leornitho/invoices_and_orders/main/Plantule_FINAL.png"); /*url("https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://lafermechautems.ch&size=16");*/
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+} */
 .email::before {
   content: "\2709";
   margin-right: 0.5em;  
 }
 
 .thanks {
-  text-align: right;
-  color: #C83200;
-  font-size: 200%;
+  text-align: left;
+  color: #92ab4e;
+  font-size: 300%;
+}
+
+.payment-info {
+  text-align: left;
+  color: black;
+  font-size: 100%;   /* plus petit que le texte normal */
+  margin-top: 10px;
+}
+
+.qr-code {
+  text-align: center;
+  margin-top: 40px;
+  width: 100%; 
 }
 
 div.instructions, .newlined, p.note {
@@ -194,6 +239,25 @@ div.paid {
 }
 
 @media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+  html, body{
+    margin:0;
+    padding:0;
+  }
+  body{
+    transform: scale(0.99);
+    transform-origin: top left;
+  }
+  .invoice {
+    width: 100%;
+    max-width: 100% !important;
+    box-sizing: border-box;
+    padding:0;
+    margin: 0;
+  }
   div.print {
     display: none;
   }
@@ -317,3 +381,14 @@ div.column-name {
   border-radius: 0.25em;
 }
 
+.logo-container {
+  width: 100%;
+  text-align: right;
+  margin-bottom: 10px;
+}
+
+.logo {
+  max-width: 200px;   /* ajuste la taille */
+  /*max-height: 200px; Remplacé par la ligne du dessous*/
+  height: auto;
+}
