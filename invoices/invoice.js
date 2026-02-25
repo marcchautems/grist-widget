@@ -247,6 +247,9 @@ let row_donnees = ''
     if (row === null) {
       throw new Error("(No data - not on row - please add or select a row)");
     }
+    // Apply column mapping so that widget field names (store, customer, order_id, etc.)
+    // are populated from whatever column names the user mapped in the Creator Panel.
+    if (mapped) Object.assign(row, mapped);
     // Fetch line items from sales_merged, filtering by the order's row id.
     row.detailed_sales = getDetailsForOrder(row.id);
     // Look up store and customer from their respective tables using integer row IDs.
@@ -332,8 +335,8 @@ ready(function() {
    columns:  [{name: 'order_id', type: 'Text'},
               {name: 'order_sales_sum_final'},
               {name: 'order_date', type: 'Date'},
-              {name:'store', optional: true},
-              {name: 'customer', optional: true}]
+              {name:'store', type: 'Int'},
+              {name: 'customer', type: 'Int'}]
 }); // Pour dire à Grist que c'est prêt. Avant: sans les options
 
   fetchSalesMerged(); // Initial load of the sales_merged table (after grist.ready).
