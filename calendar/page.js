@@ -369,9 +369,15 @@ class CalendarHandler {
     });
   }
 
-  // change calendar perspective between week, month and day.
+  // change calendar perspective between week, workweek, month and day.
   changeView(calendarViewPerspective) {
-    this.calendar.changeView(calendarViewPerspective);
+    if (calendarViewPerspective === 'workweek') {
+      this.calendar.setOptions({ week: { workweek: true } });
+      this.calendar.changeView('week');
+    } else {
+      this.calendar.setOptions({ week: { workweek: false } });
+      this.calendar.changeView(calendarViewPerspective);
+    }
     updateUIAfterNavigation();
   }
 

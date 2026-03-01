@@ -43,6 +43,11 @@
                        onchange="calendarViewChanges(this)" >
                 <span data-i18n="month">Month</span>
             </label>
+            <label id="calendar-workweek-label" class="btn" for="calendar-workweek">
+                <input type="radio" id="calendar-workweek" class="btn-check" name="calendar-options" value="workweek"
+                       onchange="calendarViewChanges(this)">
+                <span data-i18n="workWeek">Work Week</span>
+            </label>
         </div>
         <time id="calendar-title"></time>
     </nav>
