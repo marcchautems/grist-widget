@@ -483,7 +483,7 @@ function getGristOptions() {
       name: "body",
       title: t("Details"),
       optional: true,
-      type: "Text,Numeric,Integer,Date,DateTime,Bool,Choice,Any",
+      type: "Text,Numeric,Integer,Date,DateTime,Bool,Choice,Ref,RefList,Any",
       description: t("additional fields shown below the title, one per line"),
       allowMultiple: true
     },
