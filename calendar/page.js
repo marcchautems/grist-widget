@@ -893,6 +893,8 @@ async function refreshFormFieldConfigs() {
     : [currentMappings.formFields];
   if (!colIds.length) { return; }
   const colRecords = await ColTypesFetcher.getTypes(colTypesFetcher._tableId, colIds);
+  // _grist_Tables_column is needed to resolve visibleCol (stored as integer row ID, not colId string).
+  const allColumns = await grist.docApi.fetchTable('_grist_Tables_column');
   const configs = [];
   for (let i = 0; i < colIds.length; i++) {
     const colId = colIds[i];
@@ -905,7 +907,11 @@ async function refreshFormFieldConfigs() {
     let choiceItems = null;
     if (type?.startsWith('Ref:') || type?.startsWith('RefList:')) {
       const refTableId = type.startsWith('Ref:') ? type.slice(4) : type.slice(8);
-      const visibleColId = widgetOptions?.visibleCol;
+      // widgetOptions.visibleCol is an integer row ID in _grist_Tables_column, not a colId string.
+      const visibleColRef = widgetOptions?.visibleCol;
+      const visIdx = (typeof visibleColRef === 'number' && visibleColRef > 0)
+        ? allColumns.id.indexOf(visibleColRef) : -1;
+      const visibleColId = visIdx !== -1 ? allColumns.colId[visIdx] : null;
       const table = await grist.docApi.fetchTable(refTableId);
       if (table?.id) {
         const labels = (visibleColId && table[visibleColId]) || table.name || table.label;
