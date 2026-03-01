@@ -481,7 +481,7 @@ function getGristOptions() {
       name: "initials",
       title: t("Initials"),
       optional: true,
-      type: "Text,ChoiceList",
+      type: "Text,ChoiceList,Any",
       description: t("initials to display on event — supports multiple values (list)"),
       allowMultiple: false
     },
@@ -489,7 +489,7 @@ function getGristOptions() {
       name: "initialsColor",
       title: t("Initials Color"),
       optional: true,
-      type: "Text,ChoiceList",
+      type: "Text,ChoiceList,Any",
       description: t("colors for initials circles — one per initial, same order (e.g. #e74c3c)"),
       allowMultiple: false
     }
