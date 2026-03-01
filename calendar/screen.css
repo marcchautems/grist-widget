@@ -532,6 +532,7 @@ input:checked + label {
   overflow: hidden;
   height: 100%;
   gap: 1px;
+  position: relative;
 }
 
 .event-body-line {
@@ -592,4 +593,17 @@ input:checked + label {
   color: white;
   line-height: 1;
   text-transform: uppercase;
+}
+
+/* Status emoji overlay — covers the whole event card */
+.event-status-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4em;
+  background: rgba(255, 255, 255, 0.55);
+  pointer-events: none;
+  border-radius: inherit;
 }

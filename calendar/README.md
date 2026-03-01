@@ -17,6 +17,7 @@ Configure these in the Creator Panel under **Widget → Columns**.
 | **Description** | No | Text, Any (multiple) | Long-form fields shown below details, wraps up to 4 lines per column |
 | **Initials** | No | Text, ChoiceList, Any | Initials to display as colored circles on the event |
 | **Initials Color** | No | Text, ChoiceList, Any | Background colors for the initials circles (one per initial, same order) |
+| **Status Emoji** | No | Text, Any | Emoji shown as a semi-transparent overlay on the event card (e.g. `✅`, `🚫`); empty = no overlay |
 
 ## Details (body lines)
 
@@ -54,6 +55,19 @@ Set both formula columns to type **Any** in Grist, then map them to **Initials**
 
 ### Color format
 Any valid CSS color is accepted: `#e74c3c`, `rgb(231, 76, 60)`, `red`, etc.
+
+## Status Emoji Overlay
+
+Map a **Text** or **Any** column to **Status Emoji**. When the cell contains an emoji (e.g. `✅` for done, `🚫` for blocked), that emoji is displayed centered over the full event card on a semi-transparent white overlay. This immediately signals the task state at a glance without hiding the underlying event details.
+
+When the cell is empty, the card displays normally with no overlay.
+
+**Tip:** Use a formula column with a simple mapping:
+
+```python
+# Example: return an emoji based on a "Status" choice column
+{"Done": "✅", "Blocked": "🚫"}.get($Status, "")
+```
 
 ## Event Type Styling
 

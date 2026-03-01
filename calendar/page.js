@@ -163,7 +163,10 @@ class CalendarHandler {
           const badges = buildInitialsBadges(event.raw?.initials, event.raw?.initialsColor);
           const body = buildBodyLines(event.raw?.body);
           const desc = buildDescriptionLines(event.raw?.description);
-          return `<div class="event-content"><span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badges}</span>${body}${desc}</div>`;
+          const overlay = event.raw?.statusEmoji
+            ? `<div class="event-status-overlay">${escapeHtml(String(event.raw.statusEmoji))}</div>`
+            : '';
+          return `<div class="event-content"><span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badges}</span>${body}${desc}${overlay}</div>`;
         },
         allday(event) {
           const {title} = event;
@@ -171,7 +174,10 @@ class CalendarHandler {
           const badges = buildInitialsBadges(event.raw?.initials, event.raw?.initialsColor);
           const body = buildBodyLines(event.raw?.body);
           const desc = buildDescriptionLines(event.raw?.description);
-          return `<div class="event-content"><span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badges}</span>${body}${desc}</div>`;
+          const overlay = event.raw?.statusEmoji
+            ? `<div class="event-status-overlay">${escapeHtml(String(event.raw.statusEmoji))}</div>`
+            : '';
+          return `<div class="event-content"><span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badges}</span>${body}${desc}${overlay}</div>`;
         },
         popupDelete(){
           return t('Delete')
@@ -512,6 +518,14 @@ function getGristOptions() {
       type: "Text,ChoiceList,Any",
       description: t("colors for initials circles — one per initial, same order (e.g. #e74c3c)"),
       allowMultiple: false
+    },
+    {
+      name: "statusEmoji",
+      title: t("Status Emoji"),
+      optional: true,
+      type: "Text,Any",
+      description: t("emoji shown as a semi-transparent overlay on the event card (e.g. ✅ or 🚫); empty = no overlay"),
+      allowMultiple: false
     }
   ];
 }
@@ -759,6 +773,7 @@ function buildCalendarEventObject(record, colTypes, colOptions) {
     description: record.description ? (Array.isArray(record.description) ? record.description : [record.description]) : undefined,
     initials: record.initials ? (Array.isArray(record.initials) ? record.initials : [record.initials]) : undefined,
     initialsColor: record.initialsColor ? (Array.isArray(record.initialsColor) ? record.initialsColor : [record.initialsColor]) : undefined,
+    statusEmoji: record.statusEmoji || undefined,
   });
   const fontWeight = type?.choiceOptions?.[selected]?.fontBold ? '800' : 'normal';
   const fontStyle = type?.choiceOptions?.[selected]?.fontItalic ? 'italic' : 'normal';
