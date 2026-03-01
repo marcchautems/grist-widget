@@ -941,9 +941,11 @@ function buildFieldInput(config) {
       .map(o => `<option value="${o.id}">${escapeHtml(o.label)}</option>`)
       .join('');
     if (isMulti) {
-      return `<select data-grist-col="${col}" multiple` +
-        ` class="toastui-calendar-popup-input toastui-calendar-content grist-popup-select grist-popup-multiselect">` +
-        opts + `</select>`;
+      // Chip-based multi-select: regular dropdown + removable chips for each chosen item.
+      return `<div class="grist-popup-reflist-container" data-grist-col="${col}">` +
+        `<div class="grist-popup-reflist-chips"></div>` +
+        `<select class="toastui-calendar-popup-input toastui-calendar-content grist-popup-select grist-popup-reflist-select">` +
+        `<option value="">—</option>${opts}</select></div>`;
     }
     return `<select data-grist-col="${col}" class="toastui-calendar-popup-input toastui-calendar-content grist-popup-select">` +
       `<option value="">—</option>${opts}</select>`;
@@ -966,6 +968,25 @@ function buildFieldInput(config) {
     ` placeholder="${escapeHtml(config.label)}" style="flex:1;min-width:0" />`;
 }
 
+// Append a removable chip to chipsDiv for a RefList field.
+function addChip(chipsDiv, val, label) {
+  // Prevent duplicate chips for the same value.
+  if ([...chipsDiv.querySelectorAll('.grist-popup-chip')].some(c => c.dataset.val === val)) { return; }
+  const chip = document.createElement('span');
+  chip.className = 'grist-popup-chip';
+  chip.dataset.val = val;
+  const labelSpan = document.createElement('span');
+  labelSpan.textContent = label;
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.className = 'grist-popup-chip-remove';
+  removeBtn.textContent = '×';
+  removeBtn.addEventListener('click', () => chip.remove());
+  chip.appendChild(labelSpan);
+  chip.appendChild(removeBtn);
+  chipsDiv.appendChild(chip);
+}
+
 // Inject extra field rows into TUI's form popup.
 function injectPopupFields(popup) {
   if (!currentMappings?.formFields || !formFieldConfigs?.length) { return; }
@@ -974,12 +995,28 @@ function injectPopupFields(popup) {
   container.className = 'grist-popup-extra-fields';
   for (const config of formFieldConfigs) {
     const isBool = config.type === 'Bool';
+    const isRefList = config.type?.startsWith('RefList:');
     const row = document.createElement('div');
     row.className = 'toastui-calendar-popup-section';
     // Bool fields embed the label inside the checkbox row; others show it as a separate span.
     const labelHtml = isBool ? '' : `<span class="grist-popup-field-label">${escapeHtml(config.label)}</span>`;
     row.innerHTML = `<div class="toastui-calendar-popup-section-item">${labelHtml}${buildFieldInput(config)}</div>`;
     container.appendChild(row);
+
+    // Wire up the chip-add behaviour for RefList fields.
+    if (isRefList) {
+      const chipsDiv = row.querySelector('.grist-popup-reflist-chips');
+      const select = row.querySelector('.grist-popup-reflist-select');
+      if (select && chipsDiv) {
+        select.addEventListener('change', () => {
+          const val = select.value;
+          if (!val) { return; }
+          const label = select.querySelector(`option[value="${val}"]`)?.textContent || val;
+          addChip(chipsDiv, val, label);
+          select.value = ''; // reset dropdown for next pick
+        });
+      }
+    }
   }
   const buttonBar = popup.querySelector('.toastui-calendar-popup-button-bar');
   if (buttonBar) {
@@ -992,21 +1029,28 @@ function injectPopupFields(popup) {
   popup.querySelector('.toastui-calendar-popup-confirm')
     ?.addEventListener('click', () => {
       for (const config of formFieldConfigs) {
-        const el = popup.querySelector(`[data-grist-col="${config.colId}"]`);
-        if (!el) { continue; }
         if (config.type === 'Bool') {
-          pendingPopupFields[config.colId] = el.checked;
+          const el = popup.querySelector(`[data-grist-col="${config.colId}"]`);
+          if (el) { pendingPopupFields[config.colId] = el.checked; }
         } else if (config.type?.startsWith('RefList:')) {
-          const ids = Array.from(el.selectedOptions).map(o => Number(o.value)).filter(Boolean);
+          // Collect IDs from chips, not from the select value.
+          const refContainer = popup.querySelector(`.grist-popup-reflist-container[data-grist-col="${config.colId}"]`);
+          const ids = refContainer
+            ? [...refContainer.querySelectorAll('.grist-popup-chip')].map(c => Number(c.dataset.val)).filter(Boolean)
+            : [];
           pendingPopupFields[config.colId] = ids.length > 0 ? ['L', ...ids] : null;
-        } else if (config.type?.startsWith('Ref:')) {
-          pendingPopupFields[config.colId] = el.value ? Number(el.value) : null;
-        } else if (config.type === 'Int') {
-          pendingPopupFields[config.colId] = el.value !== '' ? parseInt(el.value, 10) : null;
-        } else if (config.type === 'Numeric') {
-          pendingPopupFields[config.colId] = el.value !== '' ? parseFloat(el.value) : null;
         } else {
-          pendingPopupFields[config.colId] = el.value || null;
+          const el = popup.querySelector(`[data-grist-col="${config.colId}"]`);
+          if (!el) { continue; }
+          if (config.type?.startsWith('Ref:')) {
+            pendingPopupFields[config.colId] = el.value ? Number(el.value) : null;
+          } else if (config.type === 'Int') {
+            pendingPopupFields[config.colId] = el.value !== '' ? parseInt(el.value, 10) : null;
+          } else if (config.type === 'Numeric') {
+            pendingPopupFields[config.colId] = el.value !== '' ? parseFloat(el.value) : null;
+          } else {
+            pendingPopupFields[config.colId] = el.value || null;
+          }
         }
       }
     }, { capture: true, once: true });

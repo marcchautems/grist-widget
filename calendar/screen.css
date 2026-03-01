@@ -679,20 +679,47 @@ input:checked + label {
   color: var(--grist-theme-text, black);
 }
 
-/* RefList multi-select — show several rows at once, scrollable */
-.grist-popup-multiselect {
-  height: auto;
-  min-height: 58px;
-  max-height: 110px;
-  overflow-y: auto;
-  border: 1px solid var(--grist-theme-table-body-border, #e0e0e0) !important;
-  border-radius: 3px;
-  padding: 2px 0;
-  cursor: default;
+/* RefList chip-based multi-select */
+.grist-popup-reflist-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
-.grist-popup-multiselect option {
-  padding: 2px 6px;
+.grist-popup-reflist-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
 }
+.grist-popup-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: var(--grist-theme-accent-text, #16B378);
+  color: #fff;
+  font-size: 11px;
+  padding: 1px 4px 1px 7px;
+  border-radius: 10px;
+  max-width: 160px;
+}
+.grist-popup-chip > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.grist-popup-chip-remove {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.75;
+  flex-shrink: 0;
+}
+.grist-popup-chip-remove:hover { opacity: 1; }
 
 .grist-popup-field-label {
   font-size: 11px;
