@@ -654,6 +654,23 @@ input:checked + label {
   pointer-events: none;
 }
 
+/* Injected popup select (activity type dropdown) */
+.grist-popup-select {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+  outline: none;
+  cursor: pointer;
+  min-width: 0;
+}
+.grist-popup-select option {
+  background: var(--grist-theme-page-panels-main-panel-bg, white);
+  color: var(--grist-theme-text, black);
+}
+
 /* Status emoji overlay — covers the whole event card */
 .event-status-overlay {
   position: absolute;

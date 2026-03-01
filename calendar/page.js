@@ -450,6 +450,7 @@ ready(async () => {
   await translatePage();
   calendarHandler = new CalendarHandler();
   window.gristCalendar.calendarHandler = calendarHandler;
+  setupPopupObserver();
   await configureGristSettings();
 
 });
@@ -562,6 +563,14 @@ function getGristOptions() {
       type: "Text",
       description: t("column the creation/edit form writes to — map this when Title is a computed formula so the form doesn't try to write to a read-only column"),
       allowMultiple: false
+    },
+    {
+      name: "activityType",
+      title: t("Activity Type"),
+      optional: true,
+      type: "Ref,Any",
+      description: t("reference column shown as a dropdown in the event creation form"),
+      allowMultiple: false
     }
   ];
 }
@@ -586,7 +595,10 @@ async function configureGristSettings() {
 
   // To get types, we need to know the tableId. This is a way to get it.
   grist.on('message', (e) => {
-    if (e.tableId && e.mappingsChange) { colTypesFetcher.gotNewMappings(e.tableId); }
+    if (e.tableId && e.mappingsChange) {
+      colTypesFetcher.gotNewMappings(e.tableId);
+      refreshActivityTypeOptions();
+    }
   });
 
   // TODO: remove optional chaining once grist-plugin-api.js includes this function.
@@ -724,6 +736,12 @@ async function upsertEvent(tuiEvent) {
   // conversion between calendar event object and grist flat format (so the one that is returned in onRecords event
   // and can be mapped by grist.mapColumnNamesBack)
   // tuiEvent can be partial: only the fields present will be updated in Grist.
+
+  // Capture and clear popup fields synchronously (before any await) so that
+  // a second rapid save can't see stale values.
+  const capturedFields = { ...pendingPopupFields };
+  pendingPopupFields = {};
+
   const [startType, endType] = await colTypesFetcher.getColTypes();
   const gristEvent = {
     id: tuiEvent.id,
@@ -737,6 +755,12 @@ async function upsertEvent(tuiEvent) {
     ...(currentMappings?.nameInput
       ? { nameInput: tuiEvent.title !== undefined ? (tuiEvent.title || "New Event") : undefined }
       : { title:     tuiEvent.title !== undefined ? (tuiEvent.title || "New Event") : undefined }
+    ),
+    // Include activityType only when it was explicitly set from the popup
+    // (drag/resize updates leave it out so the existing value is preserved).
+    ...(currentMappings?.activityType && 'activityType' in capturedFields
+      ? { activityType: capturedFields.activityType }
+      : {}
     ),
   }
   upsertGristRecord(gristEvent);
@@ -852,9 +876,96 @@ function buildCalendarEventObject(record, colTypes, colOptions) {
 // Current column mappings — kept up to date by updateCalendar so upsertEvent can read them.
 let currentMappings = null;
 
+// Cached options for the activityType reference dropdown: [{id, label}] or null.
+let activityTypeOptions = null;
+
+// Values captured from injected popup fields just before TUI fires beforeCreateEvent.
+let pendingPopupFields = {};
+
+// Fetch the referenced table for the activityType column and cache its rows as {id, label} pairs.
+async function refreshActivityTypeOptions() {
+  if (!currentMappings?.activityType || !colTypesFetcher._tableId) { return; }
+  const colId = currentMappings.activityType;
+  const [colRecord] = await ColTypesFetcher.getTypes(colTypesFetcher._tableId, [colId]);
+  if (!colRecord) { return; }
+  const refType = colRecord.type; // e.g. "Ref:activities"
+  if (!refType?.startsWith('Ref:')) { return; }
+  const refTableId = refType.slice(4);
+  const widgetOptions = safeParse(colRecord.widgetOptions);
+  const visibleColId = widgetOptions?.visibleCol;
+  const table = await grist.docApi.fetchTable(refTableId);
+  if (!table?.id) { return; }
+  const labels = (visibleColId && table[visibleColId]) || table.name || table.label;
+  if (!labels) { return; }
+  activityTypeOptions = table.id
+    .map((id, i) => ({ id, label: String(labels[i] ?? id) }))
+    .filter(o => o.label);
+  // If a popup is already open, inject now (covers the rare race where popup opened
+  // before options finished loading).
+  const popup = document.querySelector('.toastui-calendar-popup-container');
+  if (popup) { injectPopupFields(popup); }
+}
+
+// Inject the activity type <select> into TUI's form popup.
+function injectPopupFields(popup) {
+  if (!currentMappings?.activityType || !activityTypeOptions?.length) { return; }
+  if (popup.querySelector('#grist-popup-activity-type')) { return; } // already injected
+  const options = activityTypeOptions
+    .map(o => `<option value="${o.id}">${escapeHtml(o.label)}</option>`)
+    .join('');
+  const row = document.createElement('div');
+  row.className = 'toastui-calendar-popup-section';
+  row.innerHTML =
+    `<div class="toastui-calendar-popup-section-item">` +
+    `<span class="toastui-calendar-icon toastui-calendar-ic-title"></span>` +
+    `<select id="grist-popup-activity-type"` +
+    ` class="toastui-calendar-popup-input toastui-calendar-content grist-popup-select">` +
+    `<option value="">— ${escapeHtml(t('Activity Type'))} —</option>` +
+    options +
+    `</select></div>`;
+  const buttonBar = popup.querySelector('.toastui-calendar-popup-button-bar');
+  if (buttonBar) {
+    buttonBar.parentNode.insertBefore(row, buttonBar);
+  } else {
+    popup.appendChild(row);
+  }
+  // Capture the selected value during the capture phase so it's ready before
+  // TUI fires beforeCreateEvent in the bubble phase.
+  popup.querySelector('.toastui-calendar-popup-confirm')
+    ?.addEventListener('click', () => {
+      const sel = popup.querySelector('#grist-popup-activity-type');
+      pendingPopupFields.activityType = sel?.value ? Number(sel.value) : null;
+    }, { capture: true, once: true });
+}
+
+// Watch for TUI's form popup appearing in the DOM and inject extra fields into it.
+function setupPopupObserver() {
+  const container = document.getElementById('calendar');
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes) {
+        if (node.nodeType !== 1) { continue; }
+        const popup = node.classList?.contains('toastui-calendar-popup-container')
+          ? node
+          : node.querySelector?.('.toastui-calendar-popup-container');
+        if (popup) { injectPopupFields(popup); }
+      }
+    }
+  });
+  observer.observe(container, { subtree: true, childList: true });
+}
+
 // when some CRUD operation is performed on the table, we want to update the calendar
 async function updateCalendar(records, mappings) {
-  if (mappings) { colTypesFetcher.gotMappings(mappings); currentMappings = mappings; }
+  if (mappings) {
+    colTypesFetcher.gotMappings(mappings);
+    const prevActivityType = currentMappings?.activityType;
+    currentMappings = mappings;
+    if (mappings.activityType !== prevActivityType) {
+      activityTypeOptions = null;
+      refreshActivityTypeOptions();
+    }
+  }
 
   const mappedRecords = grist.mapColumnNames(records, mappings);
   // if any records were successfully mapped, create or update them in the calendar
