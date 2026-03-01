@@ -568,7 +568,7 @@ function getGristOptions() {
       name: "formFields",
       title: t("Form Fields"),
       optional: true,
-      type: "Text,Numeric,Integer,Bool,Choice,ChoiceList,Ref,Any",
+      type: "Text,Numeric,Integer,Bool,Choice,ChoiceList,Ref,RefList,Any",
       description: t("columns shown as extra inputs in the event creation form (one row per column)"),
       allowMultiple: true
     }
@@ -903,8 +903,8 @@ async function refreshFormFieldConfigs() {
     const widgetOptions = safeParse(rec.widgetOptions);
     let refOptions = null;
     let choiceItems = null;
-    if (type?.startsWith('Ref:')) {
-      const refTableId = type.slice(4);
+    if (type?.startsWith('Ref:') || type?.startsWith('RefList:')) {
+      const refTableId = type.startsWith('Ref:') ? type.slice(4) : type.slice(8);
       const visibleColId = widgetOptions?.visibleCol;
       const table = await grist.docApi.fetchTable(refTableId);
       if (table?.id) {
@@ -929,10 +929,16 @@ async function refreshFormFieldConfigs() {
 // Build the <input> or <select> HTML string for one field config.
 function buildFieldInput(config) {
   const col = escapeHtml(config.colId);
-  if (config.type?.startsWith('Ref:') && config.refOptions) {
+  if ((config.type?.startsWith('Ref:') || config.type?.startsWith('RefList:')) && config.refOptions) {
+    const isMulti = config.type?.startsWith('RefList:');
     const opts = config.refOptions
       .map(o => `<option value="${o.id}">${escapeHtml(o.label)}</option>`)
       .join('');
+    if (isMulti) {
+      return `<select data-grist-col="${col}" multiple` +
+        ` class="toastui-calendar-popup-input toastui-calendar-content grist-popup-select grist-popup-multiselect">` +
+        opts + `</select>`;
+    }
     return `<select data-grist-col="${col}" class="toastui-calendar-popup-input toastui-calendar-content grist-popup-select">` +
       `<option value="">—</option>${opts}</select>`;
   }
@@ -984,6 +990,9 @@ function injectPopupFields(popup) {
         if (!el) { continue; }
         if (config.type === 'Bool') {
           pendingPopupFields[config.colId] = el.checked;
+        } else if (config.type?.startsWith('RefList:')) {
+          const ids = Array.from(el.selectedOptions).map(o => Number(o.value)).filter(Boolean);
+          pendingPopupFields[config.colId] = ids.length > 0 ? ['L', ...ids] : null;
         } else if (config.type?.startsWith('Ref:')) {
           pendingPopupFields[config.colId] = el.value ? Number(el.value) : null;
         } else if (config.type === 'Int') {

@@ -655,6 +655,14 @@ input:checked + label {
 }
 
 /* Injected popup fields (form fields mapping) */
+
+/* Give the extra-fields container the same background as TUI's popup so it
+   doesn't appear as a transparent strip below the styled content area. */
+.grist-popup-extra-fields {
+  background: var(--grist-theme-page-panels-main-panel-bg, #fff);
+  border-top: 1px solid var(--grist-theme-table-body-border, #e0e0e0);
+}
+
 .grist-popup-select {
   flex: 1;
   border: none;
@@ -670,6 +678,22 @@ input:checked + label {
   background: var(--grist-theme-page-panels-main-panel-bg, white);
   color: var(--grist-theme-text, black);
 }
+
+/* RefList multi-select — show several rows at once, scrollable */
+.grist-popup-multiselect {
+  height: auto;
+  min-height: 58px;
+  max-height: 110px;
+  overflow-y: auto;
+  border: 1px solid var(--grist-theme-table-body-border, #e0e0e0) !important;
+  border-radius: 3px;
+  padding: 2px 0;
+  cursor: default;
+}
+.grist-popup-multiselect option {
+  padding: 2px 6px;
+}
+
 .grist-popup-field-label {
   font-size: 11px;
   opacity: 0.75;
