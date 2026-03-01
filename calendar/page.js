@@ -554,6 +554,14 @@ function getGristOptions() {
       type: "Numeric,Integer,Text,Any",
       description: t("number or label shown as a badge in the bottom-right corner of the event card"),
       allowMultiple: false
+    },
+    {
+      name: "nameInput",
+      title: t("Name Input"),
+      optional: true,
+      type: "Text",
+      description: t("column the creation/edit form writes to — map this when Title is a computed formula so the form doesn't try to write to a read-only column"),
+      allowMultiple: false
     }
   ];
 }
@@ -723,7 +731,13 @@ async function upsertEvent(tuiEvent) {
     startDate: tuiEvent.start ? makeGristDateTime(tuiEvent.start, startType) : undefined,
     endDate: tuiEvent.end ? makeGristDateTime(tuiEvent.end, endType) : undefined,
     isAllDay: tuiEvent.isAllday !== undefined ? (tuiEvent.isAllday ? 1 : 0) : undefined,
-    title: tuiEvent.title !== undefined ? (tuiEvent.title || "New Event") : undefined,
+    // If a separate nameInput column is mapped, write the form title there
+    // (keeps the display Title column free to be a computed formula).
+    // Otherwise fall back to writing directly to title.
+    ...(currentMappings?.nameInput
+      ? { nameInput: tuiEvent.title !== undefined ? (tuiEvent.title || "New Event") : undefined }
+      : { title:     tuiEvent.title !== undefined ? (tuiEvent.title || "New Event") : undefined }
+    ),
   }
   upsertGristRecord(gristEvent);
 }
@@ -835,9 +849,12 @@ function buildCalendarEventObject(record, colTypes, colOptions) {
   };
 }
 
+// Current column mappings — kept up to date by updateCalendar so upsertEvent can read them.
+let currentMappings = null;
+
 // when some CRUD operation is performed on the table, we want to update the calendar
 async function updateCalendar(records, mappings) {
-  if (mappings) { colTypesFetcher.gotMappings(mappings); }
+  if (mappings) { colTypesFetcher.gotMappings(mappings); currentMappings = mappings; }
 
   const mappedRecords = grist.mapColumnNames(records, mappings);
   // if any records were successfully mapped, create or update them in the calendar

@@ -20,6 +20,7 @@ Configure these in the Creator Panel under **Widget → Columns**.
 | **Status Emoji** | No | Text, Any | Emoji shown as a semi-transparent overlay on the event card (e.g. `✅`, `🚫`); empty = no overlay |
 | **Priority** | No | Text, Any | Emoji shown in the bottom-left corner (e.g. `🔴`, `🟡`, `🟢`) |
 | **Task Count** | No | Numeric, Integer, Text, Any | Number or label shown as a small badge in the bottom-right corner |
+| **Name Input** | No | Text | Column the creation/edit form writes to (use when Title is a computed formula) |
 
 ## Details (body lines)
 
