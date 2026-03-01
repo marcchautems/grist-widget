@@ -525,21 +525,24 @@ input:checked + label {
   color: inherit;
 }
 
-/* Make TUI's content wrapper fill the full event height and act as overlay anchor */
+/* Neutralise TUI's content wrapper so that .event-content can anchor to the outer event block */
 .toastui-calendar-time-event-content {
+  position: static !important;
+  overflow: visible !important;
+  padding: 0 !important;
   height: 100%;
-  position: relative;
-  overflow: visible;
 }
 
-/* Event content: title row + body lines stacked vertically */
+/* Event content: fill the outer event block (toastui-calendar-time-event) completely */
 .event-content {
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  overflow: visible;
-  height: 100%;
+  overflow: hidden;
   gap: 1px;
-  /* no position: relative — overlay anchors to .toastui-calendar-time-event-content above */
 }
 
 .event-body-line {
@@ -605,7 +608,7 @@ input:checked + label {
 /* Status emoji overlay — covers the whole event card */
 .event-status-overlay {
   position: absolute;
-  inset: -4px;
+  inset: -2px;
   display: flex;
   align-items: center;
   justify-content: center;
