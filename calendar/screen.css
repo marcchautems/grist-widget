@@ -721,8 +721,7 @@ input:checked + label {
 /* Floating panel — positioned via JS with position:fixed */
 .grist-popup-reflist-panel {
   position: fixed;
-  max-height: 200px;
-  overflow-y: auto;
+  overflow-y: auto; /* max-height is set dynamically by JS to respect available viewport space */
   background: var(--grist-theme-page-panels-main-panel-bg, #fff);
   border: 1px solid var(--grist-theme-table-body-border, #d0d0d0);
   border-radius: 4px;

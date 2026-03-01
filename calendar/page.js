@@ -1081,22 +1081,46 @@ function injectPopupFields(popup) {
       const panel = row.querySelector('.grist-popup-reflist-panel');
       const refCont = row.querySelector('.grist-popup-reflist-container');
       if (trigger && panel && chipsDiv && refCont) {
+        // Position and show the panel, flipping upward when near the bottom of the viewport.
+        function openPanel() {
+          document.querySelectorAll('.grist-popup-reflist-panel:not([hidden])').forEach(p => { p.hidden = true; });
+          const rect = trigger.getBoundingClientRect();
+          const PANEL_MAX = 200;
+          const spaceBelow = window.innerHeight - rect.bottom - 8;
+          const spaceAbove = rect.top - 8;
+          panel.style.left = rect.left + 'px';
+          panel.style.minWidth = rect.width + 'px';
+          if (spaceBelow < PANEL_MAX && spaceAbove > spaceBelow) {
+            // Not enough room below — open upward.
+            panel.style.top = '';
+            panel.style.bottom = (window.innerHeight - rect.top + 2) + 'px';
+            panel.style.maxHeight = Math.min(PANEL_MAX, spaceAbove) + 'px';
+          } else {
+            // Enough room below (or more room below than above) — open downward.
+            panel.style.top = (rect.bottom + 2) + 'px';
+            panel.style.bottom = '';
+            panel.style.maxHeight = Math.min(PANEL_MAX, spaceBelow) + 'px';
+          }
+          panel.hidden = false;
+          syncRefListHighlights(chipsDiv, panel);
+          trigger.focus();
+        }
+
         // Toggle the panel open/closed when clicking the trigger button.
         trigger.addEventListener('click', (e) => {
           e.stopPropagation();
-          if (!panel.hidden) {
-            panel.hidden = true;
-          } else {
-            // Close any other open reflist panels first.
-            document.querySelectorAll('.grist-popup-reflist-panel:not([hidden])').forEach(p => { p.hidden = true; });
-            // Position the panel below the trigger using viewport coordinates.
-            const rect = trigger.getBoundingClientRect();
-            panel.style.top = (rect.bottom + 2) + 'px';
-            panel.style.left = rect.left + 'px';
-            panel.style.minWidth = rect.width + 'px';
-            panel.hidden = false;
-            syncRefListHighlights(chipsDiv, panel);
-          }
+          if (!panel.hidden) { panel.hidden = true; } else { openPanel(); }
+        });
+
+        // Letter-jump: pressing a letter scrolls to the first matching option.
+        trigger.addEventListener('keydown', (e) => {
+          if (panel.hidden) return;
+          if (e.key === 'Escape') { panel.hidden = true; return; }
+          if (e.key.length !== 1 || e.ctrlKey || e.metaKey || e.altKey) return;
+          const key = e.key.toLowerCase();
+          const opts = [...panel.querySelectorAll('.grist-popup-reflist-option')];
+          const match = opts.find(o => o.textContent.trim().toLowerCase().startsWith(key));
+          if (match) { match.scrollIntoView({ block: 'nearest' }); }
         });
 
         // Toggle individual item selection inside the panel (panel stays open).
