@@ -18,6 +18,8 @@ Configure these in the Creator Panel under **Widget → Columns**.
 | **Initials** | No | Text, ChoiceList, Any | Initials to display as colored circles on the event |
 | **Initials Color** | No | Text, ChoiceList, Any | Background colors for the initials circles (one per initial, same order) |
 | **Status Emoji** | No | Text, Any | Emoji shown as a semi-transparent overlay on the event card (e.g. `✅`, `🚫`); empty = no overlay |
+| **Priority** | No | Text, Any | Emoji shown in the bottom-left corner (e.g. `🔴`, `🟡`, `🟢`) |
+| **Task Count** | No | Numeric, Integer, Text, Any | Number or label shown as a small badge in the bottom-right corner |
 
 ## Details (body lines)
 

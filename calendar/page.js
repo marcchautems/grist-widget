@@ -163,10 +163,16 @@ class CalendarHandler {
           const badges = buildInitialsBadges(event.raw?.initials, event.raw?.initialsColor);
           const body = buildBodyLines(event.raw?.body);
           const desc = buildDescriptionLines(event.raw?.description);
+          const priority = event.raw?.priorityEmoji
+            ? `<span class="event-priority-emoji">${escapeHtml(String(event.raw.priorityEmoji))}</span>`
+            : '';
+          const count = event.raw?.taskCount !== undefined
+            ? `<span class="event-task-count">${escapeHtml(String(event.raw.taskCount))}</span>`
+            : '';
           const overlay = event.raw?.statusEmoji
             ? `<div class="event-status-overlay">${escapeHtml(String(event.raw.statusEmoji))}</div>`
             : '';
-          return `<div class="event-content"><span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badges}</span>${body}${desc}${overlay}</div>`;
+          return `<div class="event-content"><span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badges}</span>${body}${desc}${priority}${count}${overlay}</div>`;
         },
         allday(event) {
           const {title} = event;
@@ -174,10 +180,16 @@ class CalendarHandler {
           const badges = buildInitialsBadges(event.raw?.initials, event.raw?.initialsColor);
           const body = buildBodyLines(event.raw?.body);
           const desc = buildDescriptionLines(event.raw?.description);
+          const priority = event.raw?.priorityEmoji
+            ? `<span class="event-priority-emoji">${escapeHtml(String(event.raw.priorityEmoji))}</span>`
+            : '';
+          const count = event.raw?.taskCount !== undefined
+            ? `<span class="event-task-count">${escapeHtml(String(event.raw.taskCount))}</span>`
+            : '';
           const overlay = event.raw?.statusEmoji
             ? `<div class="event-status-overlay">${escapeHtml(String(event.raw.statusEmoji))}</div>`
             : '';
-          return `<div class="event-content"><span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badges}</span>${body}${desc}${overlay}</div>`;
+          return `<div class="event-content"><span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badges}</span>${body}${desc}${priority}${count}${overlay}</div>`;
         },
         popupDelete(){
           return t('Delete')
@@ -526,6 +538,22 @@ function getGristOptions() {
       type: "Text,Any",
       description: t("emoji shown as a semi-transparent overlay on the event card (e.g. ✅ or 🚫); empty = no overlay"),
       allowMultiple: false
+    },
+    {
+      name: "priorityEmoji",
+      title: t("Priority"),
+      optional: true,
+      type: "Text,Any",
+      description: t("emoji shown in the bottom-left corner of the event card (e.g. 🔴 🟡 🟢)"),
+      allowMultiple: false
+    },
+    {
+      name: "taskCount",
+      title: t("Task Count"),
+      optional: true,
+      type: "Numeric,Integer,Text,Any",
+      description: t("number or label shown as a badge in the bottom-right corner of the event card"),
+      allowMultiple: false
     }
   ];
 }
@@ -774,6 +802,8 @@ function buildCalendarEventObject(record, colTypes, colOptions) {
     initials: record.initials ? (Array.isArray(record.initials) ? record.initials : [record.initials]) : undefined,
     initialsColor: record.initialsColor ? (Array.isArray(record.initialsColor) ? record.initialsColor : [record.initialsColor]) : undefined,
     statusEmoji: record.statusEmoji || undefined,
+    priorityEmoji: record.priorityEmoji || undefined,
+    taskCount: (record.taskCount !== undefined && record.taskCount !== null && record.taskCount !== '') ? record.taskCount : undefined,
   });
   const fontWeight = type?.choiceOptions?.[selected]?.fontBold ? '800' : 'normal';
   const fontStyle = type?.choiceOptions?.[selected]?.fontItalic ? 'italic' : 'normal';
