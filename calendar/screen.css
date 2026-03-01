@@ -525,6 +525,25 @@ input:checked + label {
   color: inherit;
 }
 
+/* Event content: title row + body lines stacked vertically */
+.event-content {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+  gap: 1px;
+}
+
+.event-body-line {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  opacity: 0.85;
+  flex-shrink: 0;
+}
+
 /* Initials badge layout */
 .event-title-wrapper {
   display: flex;

@@ -161,13 +161,15 @@ class CalendarHandler {
           const {title} = event;
           const sanitizedTitle = title.replace('"','&quot;').trim();
           const badges = buildInitialsBadges(event.raw?.initials, event.raw?.initialsColor);
-          return `<span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badges}</span>`;
+          const body = buildBodyLines(event.raw?.body);
+          return `<div class="event-content"><span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badges}</span>${body}</div>`;
         },
         allday(event) {
           const {title} = event;
           const sanitizedTitle = title.replace('"','&quot;').trim();
           const badges = buildInitialsBadges(event.raw?.initials, event.raw?.initialsColor);
-          return `<span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badges}</span>`;
+          const body = buildBodyLines(event.raw?.body);
+          return `<div class="event-content"><span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badges}</span>${body}</div>`;
         },
         popupDelete(){
           return t('Delete')
@@ -478,6 +480,14 @@ function getGristOptions() {
       allowMultiple: false
     },
     {
+      name: "body",
+      title: t("Details"),
+      optional: true,
+      type: "Text,Numeric,Integer,Date,DateTime,Bool,Choice,Any",
+      description: t("additional fields shown below the title, one per line"),
+      allowMultiple: true
+    },
+    {
       name: "initials",
       title: t("Initials"),
       optional: true,
@@ -735,6 +745,7 @@ function buildCalendarEventObject(record, colTypes, colOptions) {
   const raw = clean({
     backgroundColor: type?.choiceOptions?.[selected]?.fillColor,
     color: type?.choiceOptions?.[selected]?.textColor,
+    body: record.body ? (Array.isArray(record.body) ? record.body : [record.body]) : undefined,
     initials: record.initials ? (Array.isArray(record.initials) ? record.initials : [record.initials]) : undefined,
     initialsColor: record.initialsColor ? (Array.isArray(record.initialsColor) ? record.initialsColor : [record.initialsColor]) : undefined,
   });
@@ -865,6 +876,16 @@ function safeParse(value) {
 
 function clean(obj) {
   return Object.fromEntries(Object.entries(obj).filter(([k, v]) => v !== undefined));
+}
+
+// Build body detail lines as an HTML string. Filters out empty/null values.
+function buildBodyLines(body) {
+  if (!body) return '';
+  const lines = Array.isArray(body) ? body : [body];
+  return lines
+    .filter(v => v !== null && v !== undefined && v !== '')
+    .map(v => `<span class="event-body-line">${escapeHtml(String(v))}</span>`)
+    .join('');
 }
 
 // Build one or more initials badge(s) as an HTML string.

@@ -13,8 +13,17 @@ Configure these in the Creator Panel under **Widget → Columns**.
 | **Is All Day** | No | Bool | Whether the event spans the full day |
 | **Title** | Yes | Text | Label shown on the event block |
 | **Type** | No | Choice, ChoiceList | Controls event color/style using Grist choice colors |
+| **Details** | No | Any (multiple) | Extra fields shown below the title, one line per column |
 | **Initials** | No | Text, ChoiceList, Any | Initials to display as colored circles on the event |
 | **Initials Color** | No | Text, ChoiceList, Any | Background colors for the initials circles (one per initial, same order) |
+
+## Details (body lines)
+
+The **Details** field accepts **multiple columns** — select as many as you want in the Creator Panel. Each mapped column appears as a separate line below the event title, in the order they were added.
+
+Lines that don't fit within the event block height are automatically clipped by the calendar container. Shorter events (e.g. 30 min slots) will show fewer lines than longer ones.
+
+Empty or null values are filtered out and take no space.
 
 ## Initials Badges
 
