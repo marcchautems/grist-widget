@@ -663,16 +663,35 @@ input:checked + label {
   border-top: 1px solid var(--grist-theme-table-body-border, #e0e0e0);
 }
 
+/* Match the horizontal margin TUI applies around its built-in section items */
+.grist-popup-extra-fields .toastui-calendar-popup-section {
+  padding: 4px 8px;
+}
+
+/* Allow our injected section-items to grow beyond TUI's fixed row height and fill full width */
+.grist-popup-extra-fields .toastui-calendar-popup-section-item {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  height: auto;
+  min-height: 32px;
+  padding: 4px 8px;
+  box-sizing: border-box;
+}
+
 .grist-popup-select {
   flex: 1;
+  width: 0; /* flex:1 handles sizing; width:0 prevents native <select> from resisting shrink */
   border: none;
   background: transparent;
   color: inherit;
   font: inherit;
-  padding: 0;
+  padding: 2px 4px;
   outline: none;
   cursor: pointer;
   min-width: 0;
+  min-height: 24px;
+  box-sizing: border-box;
 }
 .grist-popup-select option {
   background: var(--grist-theme-page-panels-main-panel-bg, white);
@@ -687,6 +706,48 @@ input:checked + label {
   gap: 4px;
   min-width: 0;
 }
+/* Trigger button that opens the panel */
+.grist-popup-reflist-trigger {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+.grist-popup-reflist-placeholder { flex: 1; }
+.grist-popup-reflist-caret { font-size: 9px; opacity: 0.5; flex-shrink: 0; }
+
+/* Floating panel — positioned via JS with position:fixed */
+.grist-popup-reflist-panel {
+  position: fixed;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--grist-theme-page-panels-main-panel-bg, #fff);
+  border: 1px solid var(--grist-theme-table-body-border, #d0d0d0);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 10000;
+}
+.grist-popup-reflist-option {
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.grist-popup-reflist-option:hover {
+  background: var(--grist-theme-hover, rgba(0,0,0,0.06));
+}
+.grist-popup-reflist-option.selected {
+  background: var(--grist-theme-accent-text, #16B378);
+  color: #fff;
+}
+.grist-popup-reflist-option.selected:hover {
+  opacity: 0.88;
+}
+
 .grist-popup-reflist-chips {
   display: flex;
   flex-wrap: wrap;
@@ -728,10 +789,45 @@ input:checked + label {
   min-width: 70px;
   max-width: 110px;
   padding-right: 4px;
+  padding-top: 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  align-self: flex-start;
 }
+/* Number input — stretch to fill remaining width */
+.grist-popup-number-input {
+  flex: 1;
+  min-width: 0;
+  width: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 2px 4px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+/* Auto-resizing textarea for text/any fields */
+.grist-popup-textarea {
+  flex: 1;
+  min-width: 0;
+  width: 0;
+  min-height: 28px;
+  resize: none;
+  overflow: hidden;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  padding: 2px 0;
+  outline: none;
+  line-height: 1.4;
+  display: block;
+  box-sizing: border-box;
+}
+
 .grist-popup-checkbox-row {
   display: flex;
   align-items: center;

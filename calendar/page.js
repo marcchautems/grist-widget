@@ -977,11 +977,18 @@ function buildFieldInput(config) {
       .map(o => `<option value="${o.id}">${escapeHtml(o.label)}</option>`)
       .join('');
     if (isMulti) {
-      // Chip-based multi-select: regular dropdown + removable chips for each chosen item.
+      // Chip-based multi-select: custom panel that stays open, highlights selections.
+      const optItems = config.refOptions
+        .map(o => `<div class="grist-popup-reflist-option" data-val="${o.id}">${escapeHtml(o.label)}</div>`)
+        .join('');
       return `<div class="grist-popup-reflist-container" data-grist-col="${col}">` +
         `<div class="grist-popup-reflist-chips"></div>` +
-        `<select class="toastui-calendar-popup-input toastui-calendar-content grist-popup-select grist-popup-reflist-select">` +
-        `<option value="">—</option>${opts}</select></div>`;
+        `<button type="button" class="grist-popup-reflist-trigger toastui-calendar-popup-input toastui-calendar-content grist-popup-select">` +
+          `<span class="grist-popup-reflist-placeholder">—</span>` +
+          `<span class="grist-popup-reflist-caret">&#9660;</span>` +
+        `</button>` +
+        `<div class="grist-popup-reflist-panel" hidden>${optItems}</div>` +
+      `</div>`;
     }
     return `<select data-grist-col="${col}" class="toastui-calendar-popup-input toastui-calendar-content grist-popup-select">` +
       `<option value="">—</option>${opts}</select>`;
@@ -998,10 +1005,15 @@ function buildFieldInput(config) {
       `<input type="checkbox" data-grist-col="${col}" class="grist-popup-checkbox" />` +
       `<span>${escapeHtml(config.label)}</span></label>`;
   }
-  const numType = (config.type === 'Int' || config.type === 'Numeric') ? 'number' : 'text';
-  return `<input type="${numType}" data-grist-col="${col}"` +
-    ` class="toastui-calendar-popup-input toastui-calendar-content"` +
-    ` placeholder="${escapeHtml(config.label)}" style="flex:1;min-width:0" />`;
+  if (config.type === 'Int' || config.type === 'Numeric') {
+    return `<input type="number" data-grist-col="${col}"` +
+      ` class="toastui-calendar-popup-input toastui-calendar-content grist-popup-number-input"` +
+      ` placeholder="${escapeHtml(config.label)}" />`;
+  }
+  // Text / Any / other: use a textarea so content can span multiple lines.
+  return `<textarea data-grist-col="${col}"` +
+    ` class="toastui-calendar-popup-input toastui-calendar-content grist-popup-textarea"` +
+    ` placeholder="${escapeHtml(config.label)}" rows="1"></textarea>`;
 }
 
 // Append a removable chip to chipsDiv for a RefList field.
@@ -1023,6 +1035,14 @@ function addChip(chipsDiv, val, label) {
   chipsDiv.appendChild(chip);
 }
 
+// Sync the "selected" highlight on panel options to match current chips.
+function syncRefListHighlights(chipsDiv, panel) {
+  const selected = new Set([...chipsDiv.querySelectorAll('.grist-popup-chip')].map(c => c.dataset.val));
+  panel.querySelectorAll('.grist-popup-reflist-option').forEach(opt => {
+    opt.classList.toggle('selected', selected.has(opt.dataset.val));
+  });
+}
+
 // Inject extra field rows into TUI's form popup.
 function injectPopupFields(popup) {
   if (!currentMappings?.formFields || !formFieldConfigs?.length) { return; }
@@ -1039,17 +1059,61 @@ function injectPopupFields(popup) {
     row.innerHTML = `<div class="toastui-calendar-popup-section-item">${labelHtml}${buildFieldInput(config)}</div>`;
     container.appendChild(row);
 
-    // Wire up the chip-add behaviour for RefList fields.
+    // Wire auto-resize for textarea fields.
+    const textarea = row.querySelector('.grist-popup-textarea');
+    if (textarea) {
+      textarea.addEventListener('input', () => {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+      });
+    }
+
+    // Wire up the custom panel multi-select for RefList fields.
     if (isRefList) {
       const chipsDiv = row.querySelector('.grist-popup-reflist-chips');
-      const select = row.querySelector('.grist-popup-reflist-select');
-      if (select && chipsDiv) {
-        select.addEventListener('change', () => {
-          const val = select.value;
-          if (!val) { return; }
-          const label = select.querySelector(`option[value="${val}"]`)?.textContent || val;
-          addChip(chipsDiv, val, label);
-          select.value = ''; // reset dropdown for next pick
+      const trigger = row.querySelector('.grist-popup-reflist-trigger');
+      const panel = row.querySelector('.grist-popup-reflist-panel');
+      const refCont = row.querySelector('.grist-popup-reflist-container');
+      if (trigger && panel && chipsDiv && refCont) {
+        // Toggle the panel open/closed when clicking the trigger button.
+        trigger.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (!panel.hidden) {
+            panel.hidden = true;
+          } else {
+            // Close any other open reflist panels first.
+            document.querySelectorAll('.grist-popup-reflist-panel:not([hidden])').forEach(p => { p.hidden = true; });
+            // Position the panel below the trigger using viewport coordinates.
+            const rect = trigger.getBoundingClientRect();
+            panel.style.top = (rect.bottom + 2) + 'px';
+            panel.style.left = rect.left + 'px';
+            panel.style.minWidth = rect.width + 'px';
+            panel.hidden = false;
+            syncRefListHighlights(chipsDiv, panel);
+          }
+        });
+
+        // Toggle individual item selection inside the panel (panel stays open).
+        panel.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const opt = e.target.closest('.grist-popup-reflist-option');
+          if (!opt) return;
+          const val = opt.dataset.val;
+          const label = opt.textContent.trim();
+          const existingChip = [...chipsDiv.querySelectorAll('.grist-popup-chip')].find(c => c.dataset.val === val);
+          if (existingChip) {
+            existingChip.remove();
+            opt.classList.remove('selected');
+          } else {
+            addChip(chipsDiv, val, label);
+            opt.classList.add('selected');
+          }
+        });
+
+        // Close the panel on mousedown outside the reflist container (catches all clicks
+        // including those TUI might stop-propagate in their bubble phase).
+        document.addEventListener('mousedown', (e) => {
+          if (!panel.hidden && !refCont.contains(e.target)) { panel.hidden = true; }
         });
       }
     }
