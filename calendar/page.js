@@ -172,7 +172,7 @@ class CalendarHandler {
           const overlay = event.raw?.statusEmoji
             ? `<div class="event-status-overlay">${escapeHtml(String(event.raw.statusEmoji))}</div>`
             : '';
-          return `<div class="event-content"><span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badges}</span>${body}${desc}${priority}${count}${overlay}</div>`;
+          return `<div class="event-content event-content--time"><span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badges}</span>${body}${desc}${priority}${count}${overlay}</div>`;
         },
         allday(event) {
           const {title} = event;
@@ -189,7 +189,7 @@ class CalendarHandler {
           const overlay = event.raw?.statusEmoji
             ? `<div class="event-status-overlay">${escapeHtml(String(event.raw.statusEmoji))}</div>`
             : '';
-          return `<div class="event-content"><span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badges}</span>${body}${desc}${priority}${count}${overlay}</div>`;
+          return `<div class="event-content event-content--allday"><span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badges}</span>${body}${desc}${priority}${count}${overlay}</div>`;
         },
         popupDelete(){
           return t('Delete')
