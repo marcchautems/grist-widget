@@ -565,12 +565,12 @@ function getGristOptions() {
       allowMultiple: false
     },
     {
-      name: "activityType",
-      title: t("Activity Type"),
+      name: "formFields",
+      title: t("Form Fields"),
       optional: true,
-      type: "Ref,Any",
-      description: t("reference column shown as a dropdown in the event creation form"),
-      allowMultiple: false
+      type: "Text,Numeric,Integer,Bool,Choice,ChoiceList,Ref,Any",
+      description: t("columns shown as extra inputs in the event creation form (one row per column)"),
+      allowMultiple: true
     }
   ];
 }
@@ -597,7 +597,7 @@ async function configureGristSettings() {
   grist.on('message', (e) => {
     if (e.tableId && e.mappingsChange) {
       colTypesFetcher.gotNewMappings(e.tableId);
-      refreshActivityTypeOptions();
+      refreshFormFieldConfigs();
     }
   });
 
@@ -667,13 +667,18 @@ function changeCalendarView(view) {
 }
 
 // saving events to the table or updating existing one - basing on if ID is present or not in the send event
-async function upsertGristRecord(gristEvent) {
+async function upsertGristRecord(gristEvent, extraFields = {}) {
   try {
     //to update the table, grist requires another format that it is returning by grist in onRecords event (it's flat is
     // onRecords event and nested ({id:..., fields:{}}) in grist table), so it needs to be converted
     const mappedRecord = grist.mapColumnNamesBack(gristEvent);if (!mappedRecord) { return; }
     // we cannot save record is some unexpected columns are defined in fields, so we need to remove them
     delete mappedRecord.id;
+    // Merge extra popup fields (already keyed by actual column ID, bypass mapping).
+    // Filter out null/empty — user left the field blank, no point writing.
+    for (const [k, v] of Object.entries(extraFields)) {
+      if (v !== null && v !== undefined && v !== '') { mappedRecord[k] = v; }
+    }
     // mapColumnNamesBack returns undefined for all absent fields, so we need to remove them as well
     // (we also use undefined for updates when a field hasn't changed).
     const filteredRecord = Object.fromEntries(Object.entries(mappedRecord)
@@ -756,14 +761,10 @@ async function upsertEvent(tuiEvent) {
       ? { nameInput: tuiEvent.title !== undefined ? (tuiEvent.title || "New Event") : undefined }
       : { title:     tuiEvent.title !== undefined ? (tuiEvent.title || "New Event") : undefined }
     ),
-    // Include activityType only when it was explicitly set from the popup
-    // (drag/resize updates leave it out so the existing value is preserved).
-    ...(currentMappings?.activityType && 'activityType' in capturedFields
-      ? { activityType: capturedFields.activityType }
-      : {}
-    ),
-  }
-  upsertGristRecord(gristEvent);
+  };
+  // capturedFields is keyed by actual Grist column IDs — pass through directly.
+  // Drag/resize updates leave capturedFields empty so existing values are preserved.
+  upsertGristRecord(gristEvent, capturedFields);
 }
 
 async function deleteEvent(event) {
@@ -876,65 +877,123 @@ function buildCalendarEventObject(record, colTypes, colOptions) {
 // Current column mappings — kept up to date by updateCalendar so upsertEvent can read them.
 let currentMappings = null;
 
-// Cached options for the activityType reference dropdown: [{id, label}] or null.
-let activityTypeOptions = null;
+// Config for each mapped Form Field column: [{colId, label, type, refOptions, choiceItems}] or null.
+// refOptions: [{id, label}] for Ref columns; choiceItems: [string] for Choice/ChoiceList columns.
+let formFieldConfigs = null;
 
 // Values captured from injected popup fields just before TUI fires beforeCreateEvent.
+// Keyed by actual Grist column ID.
 let pendingPopupFields = {};
 
-// Fetch the referenced table for the activityType column and cache its rows as {id, label} pairs.
-async function refreshActivityTypeOptions() {
-  if (!currentMappings?.activityType || !colTypesFetcher._tableId) { return; }
-  const colId = currentMappings.activityType;
-  const [colRecord] = await ColTypesFetcher.getTypes(colTypesFetcher._tableId, [colId]);
-  if (!colRecord) { return; }
-  const refType = colRecord.type; // e.g. "Ref:activities"
-  if (!refType?.startsWith('Ref:')) { return; }
-  const refTableId = refType.slice(4);
-  const widgetOptions = safeParse(colRecord.widgetOptions);
-  const visibleColId = widgetOptions?.visibleCol;
-  const table = await grist.docApi.fetchTable(refTableId);
-  if (!table?.id) { return; }
-  const labels = (visibleColId && table[visibleColId]) || table.name || table.label;
-  if (!labels) { return; }
-  activityTypeOptions = table.id
-    .map((id, i) => ({ id, label: String(labels[i] ?? id) }))
-    .filter(o => o.label);
-  // If a popup is already open, inject now (covers the rare race where popup opened
-  // before options finished loading).
+// Fetch metadata and referenced-table data for every column in the formFields mapping.
+async function refreshFormFieldConfigs() {
+  if (!currentMappings?.formFields || !colTypesFetcher._tableId) { return; }
+  const colIds = Array.isArray(currentMappings.formFields)
+    ? currentMappings.formFields
+    : [currentMappings.formFields];
+  if (!colIds.length) { return; }
+  const colRecords = await ColTypesFetcher.getTypes(colTypesFetcher._tableId, colIds);
+  const configs = [];
+  for (let i = 0; i < colIds.length; i++) {
+    const colId = colIds[i];
+    const rec = colRecords[i];
+    if (!rec) { continue; }
+    const type = rec.type;                          // e.g. "Text", "Ref:activities", "Bool", "Choice"
+    const label = rec.label || colId;
+    const widgetOptions = safeParse(rec.widgetOptions);
+    let refOptions = null;
+    let choiceItems = null;
+    if (type?.startsWith('Ref:')) {
+      const refTableId = type.slice(4);
+      const visibleColId = widgetOptions?.visibleCol;
+      const table = await grist.docApi.fetchTable(refTableId);
+      if (table?.id) {
+        const labels = (visibleColId && table[visibleColId]) || table.name || table.label;
+        if (labels) {
+          refOptions = table.id
+            .map((id, j) => ({ id, label: String(labels[j] ?? id) }))
+            .filter(o => o.label);
+        }
+      }
+    } else if (type === 'Choice' || type === 'ChoiceList') {
+      choiceItems = widgetOptions?.choices || [];
+    }
+    configs.push({ colId, label, type, refOptions, choiceItems });
+  }
+  formFieldConfigs = configs;
+  // If popup already open, inject now (race-condition safety).
   const popup = document.querySelector('.toastui-calendar-popup-container');
   if (popup) { injectPopupFields(popup); }
 }
 
-// Inject the activity type <select> into TUI's form popup.
+// Build the <input> or <select> HTML string for one field config.
+function buildFieldInput(config) {
+  const col = escapeHtml(config.colId);
+  if (config.type?.startsWith('Ref:') && config.refOptions) {
+    const opts = config.refOptions
+      .map(o => `<option value="${o.id}">${escapeHtml(o.label)}</option>`)
+      .join('');
+    return `<select data-grist-col="${col}" class="toastui-calendar-popup-input toastui-calendar-content grist-popup-select">` +
+      `<option value="">—</option>${opts}</select>`;
+  }
+  if (config.type === 'Choice' || config.type === 'ChoiceList') {
+    const opts = (config.choiceItems || [])
+      .map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`)
+      .join('');
+    return `<select data-grist-col="${col}" class="toastui-calendar-popup-input toastui-calendar-content grist-popup-select">` +
+      `<option value="">—</option>${opts}</select>`;
+  }
+  if (config.type === 'Bool') {
+    return `<label class="grist-popup-checkbox-row">` +
+      `<input type="checkbox" data-grist-col="${col}" class="grist-popup-checkbox" />` +
+      `<span>${escapeHtml(config.label)}</span></label>`;
+  }
+  const numType = (config.type === 'Int' || config.type === 'Numeric') ? 'number' : 'text';
+  return `<input type="${numType}" data-grist-col="${col}"` +
+    ` class="toastui-calendar-popup-input toastui-calendar-content"` +
+    ` placeholder="${escapeHtml(config.label)}" style="flex:1;min-width:0" />`;
+}
+
+// Inject extra field rows into TUI's form popup.
 function injectPopupFields(popup) {
-  if (!currentMappings?.activityType || !activityTypeOptions?.length) { return; }
-  if (popup.querySelector('#grist-popup-activity-type')) { return; } // already injected
-  const options = activityTypeOptions
-    .map(o => `<option value="${o.id}">${escapeHtml(o.label)}</option>`)
-    .join('');
-  const row = document.createElement('div');
-  row.className = 'toastui-calendar-popup-section';
-  row.innerHTML =
-    `<div class="toastui-calendar-popup-section-item">` +
-    `<span class="toastui-calendar-icon toastui-calendar-ic-title"></span>` +
-    `<select id="grist-popup-activity-type"` +
-    ` class="toastui-calendar-popup-input toastui-calendar-content grist-popup-select">` +
-    `<option value="">— ${escapeHtml(t('Activity Type'))} —</option>` +
-    options +
-    `</select></div>`;
+  if (!currentMappings?.formFields || !formFieldConfigs?.length) { return; }
+  if (popup.querySelector('.grist-popup-extra-fields')) { return; } // already injected
+  const container = document.createElement('div');
+  container.className = 'grist-popup-extra-fields';
+  for (const config of formFieldConfigs) {
+    const isBool = config.type === 'Bool';
+    const row = document.createElement('div');
+    row.className = 'toastui-calendar-popup-section';
+    // Bool fields embed the label inside the checkbox row; others show it as a separate span.
+    const labelHtml = isBool ? '' : `<span class="grist-popup-field-label">${escapeHtml(config.label)}</span>`;
+    row.innerHTML = `<div class="toastui-calendar-popup-section-item">${labelHtml}${buildFieldInput(config)}</div>`;
+    container.appendChild(row);
+  }
   const buttonBar = popup.querySelector('.toastui-calendar-popup-button-bar');
   if (buttonBar) {
-    buttonBar.parentNode.insertBefore(row, buttonBar);
+    buttonBar.parentNode.insertBefore(container, buttonBar);
   } else {
-    popup.appendChild(row);
+    popup.appendChild(container);
   }
-  // Capture the selected value during the capture phase so it's ready before
+  // Capture all field values during the capture phase so they're ready before
   // TUI fires beforeCreateEvent in the bubble phase.
   popup.querySelector('.toastui-calendar-popup-confirm')
     ?.addEventListener('click', () => {
-      const sel = popup.querySelector('#grist-popup-activity-type');
-      pendingPopupFields.activityType = sel?.value ? Number(sel.value) : null;
+      for (const config of formFieldConfigs) {
+        const el = popup.querySelector(`[data-grist-col="${config.colId}"]`);
+        if (!el) { continue; }
+        if (config.type === 'Bool') {
+          pendingPopupFields[config.colId] = el.checked;
+        } else if (config.type?.startsWith('Ref:')) {
+          pendingPopupFields[config.colId] = el.value ? Number(el.value) : null;
+        } else if (config.type === 'Int') {
+          pendingPopupFields[config.colId] = el.value !== '' ? parseInt(el.value, 10) : null;
+        } else if (config.type === 'Numeric') {
+          pendingPopupFields[config.colId] = el.value !== '' ? parseFloat(el.value) : null;
+        } else {
+          pendingPopupFields[config.colId] = el.value || null;
+        }
+      }
     }, { capture: true, once: true });
 }
 
@@ -959,11 +1018,11 @@ function setupPopupObserver() {
 async function updateCalendar(records, mappings) {
   if (mappings) {
     colTypesFetcher.gotMappings(mappings);
-    const prevActivityType = currentMappings?.activityType;
+    const prevFormFields = JSON.stringify(currentMappings?.formFields);
     currentMappings = mappings;
-    if (mappings.activityType !== prevActivityType) {
-      activityTypeOptions = null;
-      refreshActivityTypeOptions();
+    if (JSON.stringify(mappings.formFields) !== prevFormFields) {
+      formFieldConfigs = null;
+      refreshFormFieldConfigs();
     }
   }
 

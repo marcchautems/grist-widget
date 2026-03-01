@@ -654,7 +654,7 @@ input:checked + label {
   pointer-events: none;
 }
 
-/* Injected popup select (activity type dropdown) */
+/* Injected popup fields (form fields mapping) */
 .grist-popup-select {
   flex: 1;
   border: none;
@@ -669,6 +669,31 @@ input:checked + label {
 .grist-popup-select option {
   background: var(--grist-theme-page-panels-main-panel-bg, white);
   color: var(--grist-theme-text, black);
+}
+.grist-popup-field-label {
+  font-size: 11px;
+  opacity: 0.75;
+  flex-shrink: 0;
+  min-width: 70px;
+  max-width: 110px;
+  padding-right: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.grist-popup-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  flex: 1;
+  font-size: 13px;
+}
+.grist-popup-checkbox {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  cursor: pointer;
 }
 
 /* Status emoji overlay — covers the whole event card */
