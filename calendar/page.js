@@ -885,6 +885,44 @@ let formFieldConfigs = null;
 // Keyed by actual Grist column ID.
 let pendingPopupFields = {};
 
+// Resolve which colId from a referenced table to use as display labels for a Ref/RefList column.
+// Tries three approaches in order and verifies each against the actual table data.
+function resolveRefDisplayColId(rec, allColumns, refTable) {
+  const widgetOptions = safeParse(rec.widgetOptions);
+  const visRef = widgetOptions?.visibleCol;
+  const refTableKeys = Object.keys(refTable);
+  console.debug('[resolveRefDisplayColId] col=%s widgetOptions=%o visRef=%o displayCol=%o refTableKeys=%o',
+    rec.colId, widgetOptions, visRef, rec.displayCol, refTableKeys);
+
+  // Approach 1: widgetOptions.visibleCol as an integer row ID in _grist_Tables_column.
+  if (typeof visRef === 'number' && visRef > 0) {
+    const idx = allColumns.id.indexOf(visRef);
+    console.debug('[resolveRefDisplayColId] A1: visRef=%o idx=%o colId=%o', visRef, idx, idx !== -1 ? allColumns.colId[idx] : 'n/a');
+    if (idx !== -1) {
+      const cid = allColumns.colId[idx];
+      if (cid && refTable[cid] !== undefined) { console.debug('[resolveRefDisplayColId] → A1 resolved:', cid); return cid; }
+    }
+  }
+  // Approach 2: widgetOptions.visibleCol already a colId string.
+  if (typeof visRef === 'string' && visRef && refTable[visRef] !== undefined) {
+    console.debug('[resolveRefDisplayColId] → A2 resolved:', visRef);
+    return visRef;
+  }
+  // Approach 3: displayCol → its formula column → parse "$col.field" to extract "field".
+  const dispRef = rec.displayCol;
+  if (typeof dispRef === 'number' && dispRef > 0) {
+    const idx = allColumns.id.indexOf(dispRef);
+    const formula = idx !== -1 ? (allColumns.formula?.[idx] ?? null) : null;
+    console.debug('[resolveRefDisplayColId] A3: dispRef=%o idx=%o formula=%o', dispRef, idx, formula);
+    if (idx !== -1 && typeof formula === 'string') {
+      const m = /\$\w+\.(\w+)$/.exec(formula.trim());
+      if (m && refTable[m[1]] !== undefined) { console.debug('[resolveRefDisplayColId] → A3 resolved:', m[1]); return m[1]; }
+    }
+  }
+  console.debug('[resolveRefDisplayColId] → null (no approach succeeded)');
+  return null;
+}
+
 // Fetch metadata and referenced-table data for every column in the formFields mapping.
 async function refreshFormFieldConfigs() {
   if (!currentMappings?.formFields || !colTypesFetcher._tableId) { return; }
@@ -893,7 +931,7 @@ async function refreshFormFieldConfigs() {
     : [currentMappings.formFields];
   if (!colIds.length) { return; }
   const colRecords = await ColTypesFetcher.getTypes(colTypesFetcher._tableId, colIds);
-  // _grist_Tables_column is needed to resolve visibleCol (stored as integer row ID, not colId string).
+  // _grist_Tables_column is needed to resolve the display column for Ref fields.
   const allColumns = await grist.docApi.fetchTable('_grist_Tables_column');
   const configs = [];
   for (let i = 0; i < colIds.length; i++) {
@@ -907,13 +945,11 @@ async function refreshFormFieldConfigs() {
     let choiceItems = null;
     if (type?.startsWith('Ref:') || type?.startsWith('RefList:')) {
       const refTableId = type.startsWith('Ref:') ? type.slice(4) : type.slice(8);
-      // widgetOptions.visibleCol is an integer row ID in _grist_Tables_column, not a colId string.
-      const visibleColRef = widgetOptions?.visibleCol;
-      const visIdx = (typeof visibleColRef === 'number' && visibleColRef > 0)
-        ? allColumns.id.indexOf(visibleColRef) : -1;
-      const visibleColId = visIdx !== -1 ? allColumns.colId[visIdx] : null;
       const table = await grist.docApi.fetchTable(refTableId);
       if (table?.id) {
+        const visibleColId = resolveRefDisplayColId(rec, allColumns, table);
+        console.debug('[refreshFormFieldConfigs] col=%s refTable=%s visibleColId=%o tableKeys=%o',
+          colId, refTableId, visibleColId, Object.keys(table));
         const labels = (visibleColId && table[visibleColId]) || table.name || table.label;
         if (labels) {
           refOptions = table.id
