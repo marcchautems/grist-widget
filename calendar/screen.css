@@ -543,6 +543,12 @@ input:checked + label {
   min-width: 0;
 }
 
+.event-initials-group {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
 .event-initials-badge {
   flex-shrink: 0;
   display: inline-flex;

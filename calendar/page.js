@@ -160,22 +160,14 @@ class CalendarHandler {
         time(event) {
           const {title} = event;
           const sanitizedTitle = title.replace('"','&quot;').trim();
-          const initials = event.raw?.initials;
-          const color = sanitizeCSSColor(event.raw?.initialsColor) || '#888888';
-          const badge = initials
-            ? `<span class="event-initials-badge" style="background:${color}">${escapeHtml(initials)}</span>`
-            : '';
-          return `<span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badge}</span>`;
+          const badges = buildInitialsBadges(event.raw?.initials, event.raw?.initialsColor);
+          return `<span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badges}</span>`;
         },
         allday(event) {
           const {title} = event;
           const sanitizedTitle = title.replace('"','&quot;').trim();
-          const initials = event.raw?.initials;
-          const color = sanitizeCSSColor(event.raw?.initialsColor) || '#888888';
-          const badge = initials
-            ? `<span class="event-initials-badge" style="background:${color}">${escapeHtml(initials)}</span>`
-            : '';
-          return `<span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badge}</span>`;
+          const badges = buildInitialsBadges(event.raw?.initials, event.raw?.initialsColor);
+          return `<span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badges}</span>`;
         },
         popupDelete(){
           return t('Delete')
@@ -489,16 +481,16 @@ function getGristOptions() {
       name: "initials",
       title: t("Initials"),
       optional: true,
-      type: "Text",
-      description: t("initials to display on event (e.g. person's initials)"),
+      type: "Text,ChoiceList",
+      description: t("initials to display on event — supports multiple values (list)"),
       allowMultiple: false
     },
     {
       name: "initialsColor",
       title: t("Initials Color"),
       optional: true,
-      type: "Text",
-      description: t("background color for the initials circle (e.g. #e74c3c)"),
+      type: "Text,ChoiceList",
+      description: t("colors for initials circles — one per initial, same order (e.g. #e74c3c)"),
       allowMultiple: false
     }
   ];
@@ -743,8 +735,8 @@ function buildCalendarEventObject(record, colTypes, colOptions) {
   const raw = clean({
     backgroundColor: type?.choiceOptions?.[selected]?.fillColor,
     color: type?.choiceOptions?.[selected]?.textColor,
-    initials: record.initials || undefined,
-    initialsColor: record.initialsColor || undefined,
+    initials: record.initials ? (Array.isArray(record.initials) ? record.initials : [record.initials]) : undefined,
+    initialsColor: record.initialsColor ? (Array.isArray(record.initialsColor) ? record.initialsColor : [record.initialsColor]) : undefined,
   });
   const fontWeight = type?.choiceOptions?.[selected]?.fontBold ? '800' : 'normal';
   const fontStyle = type?.choiceOptions?.[selected]?.fontItalic ? 'italic' : 'normal';
@@ -873,6 +865,18 @@ function safeParse(value) {
 
 function clean(obj) {
   return Object.fromEntries(Object.entries(obj).filter(([k, v]) => v !== undefined));
+}
+
+// Build one or more initials badge(s) as an HTML string.
+// initialsList and colorsList are arrays (already normalized in buildCalendarEventObject).
+function buildInitialsBadges(initialsList, colorsList) {
+  if (!initialsList || initialsList.length === 0) return '';
+  const colors = colorsList || [];
+  const badges = initialsList.map((init, i) => {
+    const color = sanitizeCSSColor(colors[i]) || '#888888';
+    return `<span class="event-initials-badge" style="background:${color}">${escapeHtml(String(init))}</span>`;
+  }).join('');
+  return `<span class="event-initials-group">${badges}</span>`;
 }
 
 // Only allow characters valid in CSS color values (hex, rgb, named colors, etc.)
