@@ -160,12 +160,22 @@ class CalendarHandler {
         time(event) {
           const {title} = event;
           const sanitizedTitle = title.replace('"','&quot;').trim();
-          return `<span title="${sanitizedTitle}">${title}</span>`;
+          const initials = event.raw?.initials;
+          const color = sanitizeCSSColor(event.raw?.initialsColor) || '#888888';
+          const badge = initials
+            ? `<span class="event-initials-badge" style="background:${color}">${escapeHtml(initials)}</span>`
+            : '';
+          return `<span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badge}</span>`;
         },
         allday(event) {
           const {title} = event;
           const sanitizedTitle = title.replace('"','&quot;').trim();
-          return `<span title="${sanitizedTitle}">${title}</span>`;
+          const initials = event.raw?.initials;
+          const color = sanitizeCSSColor(event.raw?.initialsColor) || '#888888';
+          const badge = initials
+            ? `<span class="event-initials-badge" style="background:${color}">${escapeHtml(initials)}</span>`
+            : '';
+          return `<span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badge}</span>`;
         },
         popupDelete(){
           return t('Delete')
@@ -474,6 +484,22 @@ function getGristOptions() {
       type: "Choice,ChoiceList",
       description: t("event category and style"),
       allowMultiple: false
+    },
+    {
+      name: "initials",
+      title: t("Initials"),
+      optional: true,
+      type: "Text",
+      description: t("initials to display on event (e.g. person's initials)"),
+      allowMultiple: false
+    },
+    {
+      name: "initialsColor",
+      title: t("Initials Color"),
+      optional: true,
+      type: "Text",
+      description: t("background color for the initials circle (e.g. #e74c3c)"),
+      allowMultiple: false
     }
   ];
 }
@@ -717,6 +743,8 @@ function buildCalendarEventObject(record, colTypes, colOptions) {
   const raw = clean({
     backgroundColor: type?.choiceOptions?.[selected]?.fillColor,
     color: type?.choiceOptions?.[selected]?.textColor,
+    initials: record.initials || undefined,
+    initialsColor: record.initialsColor || undefined,
   });
   const fontWeight = type?.choiceOptions?.[selected]?.fontBold ? '800' : 'normal';
   const fontStyle = type?.choiceOptions?.[selected]?.fontItalic ? 'italic' : 'normal';
@@ -845,6 +873,21 @@ function safeParse(value) {
 
 function clean(obj) {
   return Object.fromEntries(Object.entries(obj).filter(([k, v]) => v !== undefined));
+}
+
+// Only allow characters valid in CSS color values (hex, rgb, named colors, etc.)
+function sanitizeCSSColor(color) {
+  if (!color || typeof color !== 'string') return null;
+  return /^[a-zA-Z0-9#()\s,%.+-]+$/.test(color.trim()) ? color.trim() : null;
+}
+
+// Escape HTML entities to prevent XSS in template strings.
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 // HACK: show Record Card popup on dblclick.

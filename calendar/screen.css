@@ -524,3 +524,36 @@ input:checked + label {
 .toastui-calendar-weekday-event-dot+.toastui-calendar-weekday-event-title {
   color: inherit;
 }
+
+/* Initials badge layout */
+.event-title-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.event-title-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.event-initials-badge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: bold;
+  color: white;
+  line-height: 1;
+  text-transform: uppercase;
+}
