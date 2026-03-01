@@ -569,7 +569,7 @@ input:checked + label {
 /* Initials badge layout */
 .event-title-wrapper {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   width: 100%;
   gap: 4px;
@@ -586,8 +586,12 @@ input:checked + label {
 
 .event-initials-group {
   display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 2px;
   flex-shrink: 0;
+  max-width: 50%;
 }
 
 .event-initials-badge {
