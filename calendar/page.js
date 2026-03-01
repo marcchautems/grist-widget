@@ -499,7 +499,7 @@ function getGristOptions() {
       name: "description",
       title: t("Description"),
       optional: true,
-      type: "Text,Any",
+      type: "Text,Ref,RefList,Any",
       description: t("multi-line fields shown below details (wraps up to 4 lines each)"),
       allowMultiple: true
     },

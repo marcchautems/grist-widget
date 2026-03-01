@@ -14,7 +14,7 @@ Configure these in the Creator Panel under **Widget → Columns**.
 | **Title** | Yes | Text | Label shown on the event block |
 | **Type** | No | Choice, ChoiceList | Controls event color/style using Grist choice colors |
 | **Details** | No | Any (multiple) | Short fields shown below the title, one truncated line per column |
-| **Description** | No | Text, Any (multiple) | Long-form fields shown below details, wraps up to 4 lines per column |
+| **Description** | No | Text, Ref, RefList, Any (multiple) | Long-form fields shown below details, wraps up to 4 lines per column |
 | **Initials** | No | Text, ChoiceList, Any | Initials to display as colored circles on the event |
 | **Initials Color** | No | Text, ChoiceList, Any | Background colors for the initials circles (one per initial, same order) |
 | **Status Emoji** | No | Text, Any | Emoji shown as a semi-transparent overlay on the event card (e.g. `✅`, `🚫`); empty = no overlay |
