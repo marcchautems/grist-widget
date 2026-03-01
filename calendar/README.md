@@ -13,7 +13,8 @@ Configure these in the Creator Panel under **Widget → Columns**.
 | **Is All Day** | No | Bool | Whether the event spans the full day |
 | **Title** | Yes | Text | Label shown on the event block |
 | **Type** | No | Choice, ChoiceList | Controls event color/style using Grist choice colors |
-| **Details** | No | Any (multiple) | Extra fields shown below the title, one line per column |
+| **Details** | No | Any (multiple) | Short fields shown below the title, one truncated line per column |
+| **Description** | No | Text, Any (multiple) | Long-form fields shown below details, wraps up to 4 lines per column |
 | **Initials** | No | Text, ChoiceList, Any | Initials to display as colored circles on the event |
 | **Initials Color** | No | Text, ChoiceList, Any | Background colors for the initials circles (one per initial, same order) |
 
@@ -24,6 +25,12 @@ The **Details** field accepts **multiple columns** — select as many as you wan
 Lines that don't fit within the event block height are automatically clipped by the calendar container. Shorter events (e.g. 30 min slots) will show fewer lines than longer ones.
 
 Empty or null values are filtered out and take no space.
+
+## Description (multi-line fields)
+
+The **Description** field also accepts **multiple columns**. Each is rendered below the Detail lines with wrapping enabled, capped at **4 lines** per column via CSS `line-clamp`. Use this for longer text fields like notes or task descriptions.
+
+The rendering order in the event block is: **Title + initials → Details (single-line) → Description (multi-line)**.
 
 ## Initials Badges
 

@@ -544,6 +544,17 @@ input:checked + label {
   flex-shrink: 0;
 }
 
+.event-description-line {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: normal;
+  font-size: 10px;
+  opacity: 0.85;
+  flex-shrink: 0;
+}
+
 /* Initials badge layout */
 .event-title-wrapper {
   display: flex;

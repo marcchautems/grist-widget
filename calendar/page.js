@@ -162,14 +162,16 @@ class CalendarHandler {
           const sanitizedTitle = title.replace('"','&quot;').trim();
           const badges = buildInitialsBadges(event.raw?.initials, event.raw?.initialsColor);
           const body = buildBodyLines(event.raw?.body);
-          return `<div class="event-content"><span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badges}</span>${body}</div>`;
+          const desc = buildDescriptionLines(event.raw?.description);
+          return `<div class="event-content"><span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badges}</span>${body}${desc}</div>`;
         },
         allday(event) {
           const {title} = event;
           const sanitizedTitle = title.replace('"','&quot;').trim();
           const badges = buildInitialsBadges(event.raw?.initials, event.raw?.initialsColor);
           const body = buildBodyLines(event.raw?.body);
-          return `<div class="event-content"><span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badges}</span>${body}</div>`;
+          const desc = buildDescriptionLines(event.raw?.description);
+          return `<div class="event-content"><span class="event-title-wrapper" title="${sanitizedTitle}"><span class="event-title-text">${title}</span>${badges}</span>${body}${desc}</div>`;
         },
         popupDelete(){
           return t('Delete')
@@ -488,6 +490,14 @@ function getGristOptions() {
       allowMultiple: true
     },
     {
+      name: "description",
+      title: t("Description"),
+      optional: true,
+      type: "Text,Any",
+      description: t("multi-line fields shown below details (wraps up to 4 lines each)"),
+      allowMultiple: true
+    },
+    {
       name: "initials",
       title: t("Initials"),
       optional: true,
@@ -746,6 +756,7 @@ function buildCalendarEventObject(record, colTypes, colOptions) {
     backgroundColor: type?.choiceOptions?.[selected]?.fillColor,
     color: type?.choiceOptions?.[selected]?.textColor,
     body: record.body ? (Array.isArray(record.body) ? record.body : [record.body]) : undefined,
+    description: record.description ? (Array.isArray(record.description) ? record.description : [record.description]) : undefined,
     initials: record.initials ? (Array.isArray(record.initials) ? record.initials : [record.initials]) : undefined,
     initialsColor: record.initialsColor ? (Array.isArray(record.initialsColor) ? record.initialsColor : [record.initialsColor]) : undefined,
   });
@@ -885,6 +896,16 @@ function buildBodyLines(body) {
   return lines
     .filter(v => v !== null && v !== undefined && v !== '')
     .map(v => `<span class="event-body-line">${escapeHtml(String(v))}</span>`)
+    .join('');
+}
+
+// Build multi-line description blocks (up to 4 lines each) as an HTML string.
+function buildDescriptionLines(description) {
+  if (!description) return '';
+  const lines = Array.isArray(description) ? description : [description];
+  return lines
+    .filter(v => v !== null && v !== undefined && v !== '')
+    .map(v => `<span class="event-description-line">${escapeHtml(String(v))}</span>`)
     .join('');
 }
 
