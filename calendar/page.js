@@ -1112,14 +1112,19 @@ function injectPopupFields(popup) {
           if (!panel.hidden) { panel.hidden = true; } else { openPanel(); }
         });
 
-        // Letter-jump: pressing a letter scrolls to the first matching option.
+        // Typeahead: accumulate quickly-typed characters, scroll to the first option
+        // that starts with the buffer; reset the buffer after 500 ms of inactivity.
+        let typeaheadBuffer = '';
+        let typeaheadTimer = null;
         trigger.addEventListener('keydown', (e) => {
           if (panel.hidden) return;
           if (e.key === 'Escape') { panel.hidden = true; return; }
           if (e.key.length !== 1 || e.ctrlKey || e.metaKey || e.altKey) return;
-          const key = e.key.toLowerCase();
+          clearTimeout(typeaheadTimer);
+          typeaheadBuffer += e.key.toLowerCase();
+          typeaheadTimer = setTimeout(() => { typeaheadBuffer = ''; }, 500);
           const opts = [...panel.querySelectorAll('.grist-popup-reflist-option')];
-          const match = opts.find(o => o.textContent.trim().toLowerCase().startsWith(key));
+          const match = opts.find(o => o.textContent.trim().toLowerCase().startsWith(typeaheadBuffer));
           if (match) { match.scrollIntoView({ block: 'nearest' }); }
         });
 
