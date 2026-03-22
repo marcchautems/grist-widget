@@ -142,6 +142,13 @@ body {
   #calendar:not(.has-allday-events) .toastui-calendar-week-view .toastui-calendar-panel:not(.toastui-calendar-time) {
     max-height: 32px !important;
   }
+
+  /* Double the timegrid height so each hour slot is ~2× taller and easier to tap.
+     The time panel has overflow-y:auto (from TUI's CDN CSS) and scrolls through it.
+     Overrides the global height:100% rule that was preventing scroll on mobile. */
+  .toastui-calendar-timegrid {
+    height: 200% !important;
+  }
 }
 
 #calendar-options input[type="radio"] {

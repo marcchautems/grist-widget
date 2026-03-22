@@ -472,6 +472,12 @@ ready(async () => {
   setupPopupObserver();
   await configureGristSettings();
 
+  // On mobile the timegrid is CSS-doubled for larger tap targets. Force a re-render so
+  // TUI recalculates event positions against the new timegrid height.
+  if (window.innerWidth <= 520) {
+    calendarHandler.calendar.render();
+  }
+
 });
 
 // Data for column mapping fields in Widget GUI
