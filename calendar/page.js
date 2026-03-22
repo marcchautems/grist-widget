@@ -582,12 +582,24 @@ function getGristOptions() {
 }
 
 
+// Toggle a CSS class on #calendar that reflects whether any all-day events are visible.
+// Used by a mobile CSS rule to collapse the all-day row when it's empty.
+function updateAlldayClass() {
+  const cal = document.getElementById('calendar');
+  if (!cal) { return; }
+  const hasAllday = !!cal.querySelector(
+    '.toastui-calendar-panel:not(.toastui-calendar-time) [class*="weekday-event"]'
+  );
+  cal.classList.toggle('has-allday-events', hasAllday);
+}
+
 function updateUIAfterNavigation() {
   calendarHandler.renderVisibleEvents();
   // update name of the month and year displayed on the top of the widget
   document.getElementById('calendar-title').innerText = getMonthName();
   // refresh colors of selected event (in month view it's different from in other views)
   calendarHandler.refreshSelectedRecord();
+  updateAlldayClass();
 }
 
 // let's subscribe to all the events that we need
@@ -609,6 +621,15 @@ async function configureGristSettings() {
 
   // TODO: remove optional chaining once grist-plugin-api.js includes this function.
   grist.enableKeyboardShortcuts?.();
+
+  // Close the mobile view menu when the user taps outside it.
+  document.addEventListener('mousedown', (e) => {
+    const menu = document.getElementById('calendar-view-menu');
+    const btn  = document.getElementById('calendar-view-menu-btn');
+    if (menu && !menu.hidden && !menu.contains(e.target) && e.target !== btn) {
+      menu.hidden = true;
+    }
+  });
 
   // bind columns mapping options to the GUI
   const columnsMappingOptions = getGristOptions();
@@ -649,9 +670,25 @@ function gristSelectedRecordChanged(record, mappings) {
   }
 }
 
+// Open/close the mobile ⋮ view-selection dropdown.
+function toggleViewMenu(btn) {
+  const menu = document.getElementById('calendar-view-menu');
+  if (!menu.hidden) { menu.hidden = true; return; }
+  const rect = btn.getBoundingClientRect();
+  menu.style.top  = (rect.bottom + 4) + 'px';
+  menu.style.left = rect.left + 'px';
+  menu.hidden = false;
+}
+
+function closeViewMenu() {
+  const menu = document.getElementById('calendar-view-menu');
+  if (menu) { menu.hidden = true; }
+}
+
 // when a user changes the perspective in the GUI, we want to save it as grist option
 // - rest of logic is in reaction to the grist option changed
 async function calendarViewChanges(radiobutton) {
+  closeViewMenu();
   changeCalendarView(radiobutton.value);
   if (!isReadOnly) {
     await grist.setOption('calendarViewPerspective', radiobutton.value);

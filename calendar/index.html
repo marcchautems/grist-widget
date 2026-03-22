@@ -26,6 +26,7 @@
             </button>
             <button id="calendar-button-today" class="btn btn-sm" data-i18n="today" onclick="calendarHandler.calendarToday()">Today
             </button>
+            <button id="calendar-view-menu-btn" class="btn btn-sm" onclick="toggleViewMenu(this)">⋮</button>
         </div>
         <div id="calendar-perspective-buttons" class="btn-group btn-group-sm" data-toggle="buttons">
             <label id="calendar-day-label" class="btn" for="calendar-day" >
@@ -50,6 +51,24 @@
             </label>
         </div>
         <time id="calendar-title"></time>
+        <div id="calendar-view-menu" hidden>
+            <label class="btn" for="m-calendar-day">
+                <input type="radio" id="m-calendar-day" name="calendar-options" value="day" onchange="calendarViewChanges(this)">
+                <span data-i18n="day">Day</span>
+            </label>
+            <label class="btn" for="m-calendar-week">
+                <input type="radio" id="m-calendar-week" name="calendar-options" value="week" onchange="calendarViewChanges(this)">
+                <span data-i18n="week">Week</span>
+            </label>
+            <label class="btn" for="m-calendar-workweek">
+                <input type="radio" id="m-calendar-workweek" name="calendar-options" value="workweek" onchange="calendarViewChanges(this)">
+                <span data-i18n="workWeek">Work Week</span>
+            </label>
+            <label class="btn" for="m-calendar-month">
+                <input type="radio" id="m-calendar-month" name="calendar-options" value="month" onchange="calendarViewChanges(this)">
+                <span data-i18n="month">Month</span>
+            </label>
+        </div>
     </nav>
     <div id="calendar">
     </div>
