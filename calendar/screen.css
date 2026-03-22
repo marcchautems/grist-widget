@@ -143,9 +143,12 @@ body {
     max-height: 32px !important;
   }
 
-  /* Double the timegrid height so each hour slot is ~2× taller and easier to tap.
-     The time panel has overflow-y:auto (from TUI's CDN CSS) and scrolls through it.
-     Overrides the global height:100% rule that was preventing scroll on mobile. */
+  /* Make the time panel scroll and the timegrid 2× taller so hour slots are larger.
+     overflow-y: scroll is explicit in case TUI's CDN CSS sets it to hidden.
+     height: 200% overrides the global height:100% that was preventing scroll. */
+  .toastui-calendar-panel.toastui-calendar-time {
+    overflow-y: scroll !important;
+  }
   .toastui-calendar-timegrid {
     height: 200% !important;
   }
