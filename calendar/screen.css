@@ -143,13 +143,6 @@ body {
     max-height: 32px !important;
   }
 
-  /* zoom: 2 scales the entire timegrid (rows, events, time labels) uniformly by 2×.
-     Unlike height overrides, zoom also doubles the layout dimensions that the scroll
-     container sees, so the panel scrolls through 2× more content. Event positions and
-     click targets remain correct because everything scales proportionally. */
-  .toastui-calendar-timegrid {
-    zoom: 2;
-  }
 }
 
 #calendar-options input[type="radio"] {

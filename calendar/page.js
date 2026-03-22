@@ -472,9 +472,11 @@ ready(async () => {
   setupPopupObserver();
   await configureGristSettings();
 
-  // On mobile the timegrid is CSS-doubled for larger tap targets. Force a re-render so
-  // TUI recalculates event positions against the new timegrid height.
+  // On mobile, increase the hour row height for easier tapping.
+  // week.hourHeight sets the pixel height per hour; TUI recalculates all event
+  // positions and grid lines automatically when the option is applied.
   if (window.innerWidth <= 520) {
+    calendarHandler.calendar.setOptions({ week: { hourHeight: 100 } });
     calendarHandler.calendar.render();
   }
 
