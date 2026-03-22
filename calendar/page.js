@@ -241,6 +241,11 @@ class CalendarHandler {
     // Not sure how to get a reference to this constructor, so doing it in a roundabout way.
     TZDate = this.calendar.getDate().constructor;
 
+    // Re-render TUI whenever the calendar container changes size (e.g. toolbar collapses
+    // on mobile, or the Grist panel is resized). TUI does not observe its own container.
+    const ro = new ResizeObserver(() => this.calendar.render());
+    ro.observe(container);
+
     this.calendar.on('clickEvent', async (info) => {
       focusWidget();
       await grist.setCursorPos({rowId: info.event.id});
