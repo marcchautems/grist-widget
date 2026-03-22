@@ -472,11 +472,6 @@ ready(async () => {
   setupPopupObserver();
   await configureGristSettings();
 
-  // On mobile, scale the timegrid after TUI's initial render settles.
-  if (window.innerWidth <= 520) {
-    setTimeout(scaleMobileTimegrid, 100);
-  }
-
 });
 
 // Data for column mapping fields in Widget GUI
@@ -600,42 +595,6 @@ function getGristOptions() {
 }
 
 
-// Toggle a CSS class on #calendar that reflects whether any all-day events are visible.
-// Used by a mobile CSS rule to collapse the all-day row when it's empty.
-// On mobile, double all pixel heights/positions inside the timegrid so hour rows are
-// ~2× taller and easier to tap. TUI uses inline pixel styles for event positioning,
-// so a CSS height override alone cannot move events — we patch the values after render.
-// data-scaled-from guards against double-scaling within the same render cycle.
-function scaleMobileTimegrid() {
-  if (window.innerWidth > 520) return;
-  const timegrid = document.querySelector('#calendar .toastui-calendar-timegrid');
-  if (!timegrid) return;
-  const currentH = parseFloat(timegrid.style.height);
-  const scaledFrom = parseFloat(timegrid.dataset.scaledFrom || '0');
-  // Skip if already scaled from this TUI-calculated height.
-  if (currentH <= 0 || currentH === scaledFrom * 2) return;
-  timegrid.dataset.scaledFrom = String(currentH);
-  timegrid.style.height = (currentH * 2) + 'px';
-  // Hour label rows (left time column)
-  timegrid.querySelectorAll('.toastui-calendar-timegrid-hour').forEach(el => {
-    const h = parseFloat(el.style.height);
-    if (h > 0) el.style.height = (h * 2) + 'px';
-  });
-  // 30-min grid slot lines
-  timegrid.querySelectorAll('.toastui-calendar-timegrid-slot').forEach(el => {
-    const h = parseFloat(el.style.height);
-    if (h > 0) el.style.height = (h * 2) + 'px';
-  });
-  // Events: scale top + height; mark to avoid re-scaling the same element
-  timegrid.querySelectorAll('.toastui-calendar-time-event:not([data-mobile-scaled])').forEach(el => {
-    el.dataset.mobileScaled = '1';
-    const top = parseFloat(el.style.top);
-    const h = parseFloat(el.style.height);
-    if (el.style.top) el.style.top = (top * 2) + 'px';
-    if (h > 0) el.style.height = (h * 2) + 'px';
-  });
-}
-
 function updateAlldayClass() {
   const cal = document.getElementById('calendar');
   if (!cal) { return; }
@@ -652,7 +611,6 @@ function updateUIAfterNavigation() {
   // refresh colors of selected event (in month view it's different from in other views)
   calendarHandler.refreshSelectedRecord();
   updateAlldayClass();
-  setTimeout(scaleMobileTimegrid, 0);
 }
 
 // let's subscribe to all the events that we need

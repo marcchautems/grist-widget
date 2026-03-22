@@ -143,6 +143,16 @@ body {
     max-height: 32px !important;
   }
 
+  /* Make hour rows ~2× taller so event cards are bigger and easier to tap.
+     TUI v2 positions events as percentages of the scroll area, so enlarging it
+     scales everything (events, grid lines, time labels) proportionally. */
+  .toastui-calendar-timegrid-scroll-area {
+    height: 2400px !important; /* ~2× TUI's default ~1152px; 100px per hour × 24h */
+  }
+  .toastui-calendar-panel.toastui-calendar-time {
+    overflow-y: auto !important;
+  }
+
 }
 
 #calendar-options input[type="radio"] {
