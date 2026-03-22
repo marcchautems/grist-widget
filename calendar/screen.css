@@ -143,14 +143,12 @@ body {
     max-height: 32px !important;
   }
 
-  /* Make the time panel scroll and the timegrid 2× taller so hour slots are larger.
-     overflow-y: scroll is explicit in case TUI's CDN CSS sets it to hidden.
-     height: 200% overrides the global height:100% that was preventing scroll. */
-  .toastui-calendar-panel.toastui-calendar-time {
-    overflow-y: scroll !important;
-  }
+  /* zoom: 2 scales the entire timegrid (rows, events, time labels) uniformly by 2×.
+     Unlike height overrides, zoom also doubles the layout dimensions that the scroll
+     container sees, so the panel scrolls through 2× more content. Event positions and
+     click targets remain correct because everything scales proportionally. */
   .toastui-calendar-timegrid {
-    height: 200% !important;
+    zoom: 2;
   }
 }
 
