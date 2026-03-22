@@ -243,15 +243,19 @@ class CalendarHandler {
 
     // Re-render TUI whenever the calendar container changes size (e.g. toolbar collapses
     // on mobile, or the Grist panel is resized). TUI does not observe its own container.
-    // changeView() with the current view name triggers TUI's full height recalculation
-    // including timegrid pixel height for week/day views. requestAnimationFrame batches
-    // rapid callbacks into one call per frame to avoid redundant work.
+    // TUI v2 guards changeView() with the same view as a no-op, so we must briefly switch
+    // to a different view and back to force a full height recalculation of the timegrid.
+    // Both calls happen synchronously in the same frame so there is no visual flicker.
     let _roRaf = null;
     const ro = new ResizeObserver(() => {
       if (_roRaf) { return; }
       _roRaf = requestAnimationFrame(() => {
         _roRaf = null;
-        this.calendar.changeView(this.calendar.getViewName());
+        const view = this.calendar.getViewName();
+        const tempView = (view === 'month') ? 'day' : 'month';
+        this.calendar.changeView(tempView);
+        this.calendar.changeView(view);
+        updateUIAfterNavigation();
       });
     });
     ro.observe(container);
