@@ -125,7 +125,19 @@ body {
   }
   #calendar-view-menu .btn:last-child { border-bottom: none; }
 
-  /* Collapse all-day row when it contains no events */
+  /* Collapse all-day row when it contains no events, and expand the time panel to fill the
+     freed space. TUI sets pixel heights via inline styles; we override them here.
+     - The week/day view container is forced to 100% of #calendar (overrides TUI's inline px).
+     - The time panel fills all but the 32px all-day header (overrides TUI's inline px).
+     - The all-day panel is capped at 32px to show only the day-name header row. */
+  #calendar:not(.has-allday-events) .toastui-calendar-day-view,
+  #calendar:not(.has-allday-events) .toastui-calendar-week-view {
+    height: 100% !important;
+  }
+  #calendar:not(.has-allday-events) .toastui-calendar-day-view  .toastui-calendar-panel.toastui-calendar-time,
+  #calendar:not(.has-allday-events) .toastui-calendar-week-view .toastui-calendar-panel.toastui-calendar-time {
+    height: calc(100% - 32px) !important;
+  }
   #calendar:not(.has-allday-events) .toastui-calendar-day-view  .toastui-calendar-panel:not(.toastui-calendar-time),
   #calendar:not(.has-allday-events) .toastui-calendar-week-view .toastui-calendar-panel:not(.toastui-calendar-time) {
     max-height: 32px !important;
