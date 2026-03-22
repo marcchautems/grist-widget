@@ -243,7 +243,17 @@ class CalendarHandler {
 
     // Re-render TUI whenever the calendar container changes size (e.g. toolbar collapses
     // on mobile, or the Grist panel is resized). TUI does not observe its own container.
-    const ro = new ResizeObserver(() => this.calendar.render());
+    // Dispatching a synthetic window 'resize' triggers TUI's full height recalculation
+    // for all views including the timegrid (week/day). requestAnimationFrame batches
+    // rapid callbacks into one dispatch per frame to avoid redundant work.
+    let _roRaf = null;
+    const ro = new ResizeObserver(() => {
+      if (_roRaf) { return; }
+      _roRaf = requestAnimationFrame(() => {
+        _roRaf = null;
+        window.dispatchEvent(new Event('resize'));
+      });
+    });
     ro.observe(container);
 
     this.calendar.on('clickEvent', async (info) => {
