@@ -28,6 +28,11 @@
             </button>
             <button id="calendar-view-menu-btn" class="btn btn-sm" onclick="toggleViewMenu(this)">⋮</button>
         </div>
+        <div id="calendar-zoom-controls" class="btn-group btn-group-sm" style="display:none">
+            <button class="btn btn-sm" onclick="adjustHourHeight(-10)" title="Zoom out">−</button>
+            <span id="calendar-zoom-label" style="line-height:30px;padding:0 6px;font-size:12px">48px/hr</span>
+            <button class="btn btn-sm" onclick="adjustHourHeight(+10)" title="Zoom in">+</button>
+        </div>
         <div id="calendar-perspective-buttons" class="btn-group btn-group-sm" data-toggle="buttons">
             <label id="calendar-day-label" class="btn" for="calendar-day" >
                 <input type="radio" id="calendar-day" class="btn-check" name="calendar-options" value="day"
@@ -68,6 +73,11 @@
                 <input type="radio" id="m-calendar-month" name="calendar-options" value="month" onchange="calendarViewChanges(this)">
                 <span data-i18n="month">Month</span>
             </label>
+            <div class="calendar-zoom-row">
+                <button class="btn" onclick="adjustHourHeight(-10)" title="Zoom out">−</button>
+                <span id="calendar-zoom-label-mobile" style="flex:1;text-align:center;font-size:12px">100px/hr</span>
+                <button class="btn" onclick="adjustHourHeight(+10)" title="Zoom in">+</button>
+            </div>
         </div>
     </nav>
     <div id="calendar">

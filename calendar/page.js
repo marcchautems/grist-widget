@@ -1,6 +1,10 @@
 // to keep all calendar related logic;
 let calendarHandler;
 
+// Hour-row height in px/hr, saved as Grist widget options (separate for mobile and desktop).
+let _mobileHourHeight  = 100;  // default: ~2× TUI's natural ~48px/hr, good for touch targets
+let _desktopHourHeight = 48;   // default: TUI's natural height (no change)
+
 const CALENDAR_NAME = 'standardCalendar';
 
 const t = i18next.t;
@@ -471,7 +475,13 @@ ready(async () => {
   window.gristCalendar.calendarHandler = calendarHandler;
   setupPopupObserver();
   await configureGristSettings();
-
+  // Show the desktop zoom control; mobile uses the ⋮ menu zoom row instead.
+  if (window.innerWidth > 520) {
+    const zc = document.getElementById('calendar-zoom-controls');
+    if (zc) zc.style.display = '';
+  }
+  // Apply default hour heights immediately (onGristSettingsChanged will override with saved values).
+  applyHourHeight(_mobileHourHeight, _desktopHourHeight);
 });
 
 // Data for column mapping fields in Widget GUI
@@ -595,6 +605,45 @@ function getGristOptions() {
 }
 
 
+// Inject a <style> tag that sets the timegrid scroll-area height based on px/hr values.
+// TUI v2 positions events as percentages of the scroll area, so enlarging it scales
+// everything (events, grid lines, time labels) proportionally.
+function applyHourHeight(mobileH, desktopH) {
+  let styleEl = document.getElementById('hour-height-style');
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = 'hour-height-style';
+    document.head.appendChild(styleEl);
+  }
+  styleEl.textContent = [
+    `@media (max-width: 520px) {`,
+    `  .toastui-calendar-timegrid-scroll-area { height: ${mobileH * 24}px !important; }`,
+    `}`,
+    `@media (min-width: 521px) {`,
+    `  .toastui-calendar-timegrid-scroll-area { height: ${desktopH * 24}px !important; }`,
+    `}`,
+  ].join('\n');
+  // Update the zoom label in whichever toolbar is visible
+  const isMobile = window.innerWidth <= 520;
+  const label = document.getElementById(isMobile ? 'calendar-zoom-label-mobile' : 'calendar-zoom-label');
+  if (label) label.textContent = (isMobile ? mobileH : desktopH) + 'px/hr';
+}
+
+// Called by the +/− zoom buttons in the toolbar / mobile menu.
+async function adjustHourHeight(delta) {
+  const isMobile = window.innerWidth <= 520;
+  if (isMobile) {
+    _mobileHourHeight = Math.max(30, Math.min(200, _mobileHourHeight + delta));
+  } else {
+    _desktopHourHeight = Math.max(30, Math.min(200, _desktopHourHeight + delta));
+  }
+  applyHourHeight(_mobileHourHeight, _desktopHourHeight);
+  if (!isReadOnly) {
+    await grist.setOption('mobileHourHeight',  _mobileHourHeight);
+    await grist.setOption('desktopHourHeight', _desktopHourHeight);
+  }
+}
+
 function updateAlldayClass() {
   const cal = document.getElementById('calendar');
   if (!cal) { return; }
@@ -713,6 +762,10 @@ function onGristSettingsChanged(options, settings) {
   const view = options?.calendarViewPerspective ?? 'week';
   changeCalendarView(view);
   colTypesFetcher.setAccessLevel(settings.accessLevel);
+  // Restore saved hour heights (fall back to defaults if not yet saved)
+  _mobileHourHeight  = options?.mobileHourHeight  ?? 100;
+  _desktopHourHeight = options?.desktopHourHeight ?? 48;
+  applyHourHeight(_mobileHourHeight, _desktopHourHeight);
 };
 
 function changeCalendarView(view) {
