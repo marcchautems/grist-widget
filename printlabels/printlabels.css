@@ -208,6 +208,20 @@ body {
   width: 64.6mm;
 }
 
+/* 189 labels: 7 cols × 27 rows, 25.4mm × 10mm, 2.54mm col gap, 8.48mm L/R margin, 13.5mm T/B margin */
+.outer-a4labels189 {
+  --page-width: 210mm;
+  --page-height: 297mm;
+}
+.page-a4labels189 {
+  --vmargin: 13.5mm;
+  --hmargin: 8.48mm;
+}
+.label-a4labels189 {
+  height: 10mm;
+  width: 25.4mm;
+}
+
 .header {
   margin: 8px;
   font-size: 11pt;

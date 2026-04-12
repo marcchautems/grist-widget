@@ -34,6 +34,10 @@ const templates = [{
   id: 'a4labels24',
   name: 'A4 - 24 per sheet (33.9mm x 63.5mm) Avery3658',
   perPage: 24,
+}, {
+  id: 'a4labels189',
+  name: 'A4 - 189 per sheet (10mm x 25.4mm, 7 cols)',
+  perPage: 189,
 }];
 
 // For backward compatibility we will read starting template from a URL's hash or store, but
