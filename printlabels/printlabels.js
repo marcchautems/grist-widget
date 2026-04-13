@@ -77,7 +77,10 @@ let data = {
   // Vertical offset of the center block in mm (positive = toward top, negative = toward bottom).
   centerOffset: 0,
   // Horizontal offset of the center block in mm (positive = toward right, negative = toward left).
-  centerHOffset: 0
+  centerHOffset: 0,
+  // Printer displacement: shifts the entire label grid to compensate for printer inaccuracy.
+  printerOffsetX: 0,  // mm, positive = right
+  printerOffsetY: 0,  // mm, positive = down
 };
 
 // Columns we expect
@@ -283,6 +286,8 @@ ready(function() {
       data.qrSize = options.qrSize != null ? options.qrSize : 10;
       data.centerOffset = options.centerOffset != null ? options.centerOffset : 0;
       data.centerHOffset = options.centerHOffset != null ? options.centerHOffset : 0;
+      data.printerOffsetX = options.printerOffsetX != null ? options.printerOffsetX : 0;
+      data.printerOffsetY = options.printerOffsetY != null ? options.printerOffsetY : 0;
     } else {
       // Revert to defaults.
       data.template = defaultTemplate;
@@ -297,6 +302,8 @@ ready(function() {
       data.qrSize = 10;
       data.centerOffset = 0;
       data.centerHOffset = 0;
+      data.printerOffsetX = 0;
+      data.printerOffsetY = 0;
     }
   })
   // Update the widget anytime the document data changes.
@@ -343,7 +350,9 @@ ready(function() {
           '--bottom-left-weight': this.bottomLeftBold ? 'bold' : 'normal',
           '--qr-size': this.qrSize + 'mm',
           '--center-offset': (-this.centerOffset) + 'mm',
-          '--center-hoffset': this.centerHOffset + 'mm'
+          '--center-hoffset': this.centerHOffset + 'mm',
+          '--printer-offset-x': this.printerOffsetX + 'mm',
+          '--printer-offset-y': this.printerOffsetY + 'mm'
         };
       }
     },
@@ -373,6 +382,8 @@ ready(function() {
         await grist.widgetApi.setOption('qrSize', this.qrSize);
         await grist.widgetApi.setOption('centerOffset', this.centerOffset);
         await grist.widgetApi.setOption('centerHOffset', this.centerHOffset);
+        await grist.widgetApi.setOption('printerOffsetX', this.printerOffsetX);
+        await grist.widgetApi.setOption('printerOffsetY', this.printerOffsetY);
       }
     },
     updated: () => setTimeout(updateSize, 0),
