@@ -23,7 +23,11 @@
       </div>
       <template v-else>
         <div class="container">
-          <button class="button" v-for="(input, idx) in inputs" v-on:click="applyActions(input.actions)" v-on:mouseover="desc = idx" v-on:mouseleave="desc = null">
+          <button class="button" v-for="(input, idx) in inputs"
+            v-bind:style="buttonStyle(input)"
+            v-bind:disabled="!!input.disabled"
+            v-on:click="!input.disabled && applyActions(input.actions)"
+            v-on:mouseover="desc = idx" v-on:mouseleave="desc = null">
             {{ input.button }}
           </button>
         </div>

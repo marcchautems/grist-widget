@@ -46,4 +46,9 @@ body {
   font-size: inherit;
   font-family: inherit;
   font-weight: inherit;
+  cursor: pointer;
+}
+.button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }

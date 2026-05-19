@@ -73,6 +73,14 @@ ready(function() {
   app = new Vue({
     el: '#app',
     data: data,
-    methods: {applyActions}
+    methods: {
+      applyActions,
+      buttonStyle(input) {
+        const style = {};
+        if (input.color) style.backgroundColor = input.color;
+        if (input.textColor) style.color = input.textColor;
+        return style;
+      }
+    }
   });
 });
