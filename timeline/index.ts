@@ -330,7 +330,7 @@ const options: TimelineOptions = {
     disabled: true,
   },
   zoomMin: 1000 * 60 * 60 * 24 * 7 * 2, // about four weeks in milliseconds
-  zoomMax: 1000 * 60 * 60 * 24 * 31 * 3, // about  12 months in milliseconds
+  zoomMax: 1000 * 60 * 60 * 24 * 365, // about 1 year in milliseconds
   moment: function(date) {
     return moment(date); // Use moment with the 'en-gb' locale setting
   },

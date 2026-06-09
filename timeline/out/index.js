@@ -52804,8 +52804,8 @@ input.vis-configuration.vis-config-range:focus::-ms-fill-upper {
     },
     zoomMin: 1e3 * 60 * 60 * 24 * 7 * 2,
     // about four weeks in milliseconds
-    zoomMax: 1e3 * 60 * 60 * 24 * 31 * 3,
-    // about  12 months in milliseconds
+    zoomMax: 1e3 * 60 * 60 * 24 * 365,
+    // about 1 year in milliseconds
     moment: function(date2) {
       return (0, import_moment_timezone2.default)(date2);
     },
