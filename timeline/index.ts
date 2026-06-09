@@ -85,6 +85,21 @@ grist.ready({
       optional: true,
     },
     {
+      name: 'BackgroundColor',
+      title: 'Background color',
+      optional: true,
+    },
+    {
+      name: 'BorderColor',
+      title: 'Border color',
+      optional: true,
+    },
+    {
+      name: 'TextColor',
+      title: 'Text color',
+      optional: true,
+    },
+    {
       name: 'From',
     },
     {
@@ -438,6 +453,15 @@ function recToItem(r): Item {
     result.editable = false;
   }
 
+  // Per-item styling, driven by optional Grist columns.
+  const styles: string[] = [];
+  if (r.BackgroundColor) { styles.push(`background-color: ${r.BackgroundColor}`); }
+  if (r.BorderColor) { styles.push(`border-color: ${r.BorderColor}`); }
+  if (r.TextColor) { styles.push(`color: ${r.TextColor}`); }
+  if (styles.length) {
+    result.style = styles.join('; ');
+  }
+
   return result;
 }
 
@@ -483,6 +507,9 @@ function compareItems(a: any, b: any) {
     return false;
   }
   if (a.type !== b.type) {
+    return false;
+  }
+  if (a.style !== b.style) {
     return false;
   }
   return true;

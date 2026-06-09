@@ -52599,6 +52599,21 @@ input.vis-configuration.vis-config-range:focus::-ms-fill-upper {
         optional: true
       },
       {
+        name: "BackgroundColor",
+        title: "Background color",
+        optional: true
+      },
+      {
+        name: "BorderColor",
+        title: "Border color",
+        optional: true
+      },
+      {
+        name: "TextColor",
+        title: "Text color",
+        optional: true
+      },
+      {
         name: "From"
       },
       {
@@ -52890,6 +52905,19 @@ input.vis-configuration.vis-config-range:focus::-ms-fill-upper {
     if (r7.Readonly) {
       result.editable = false;
     }
+    const styles = [];
+    if (r7.BackgroundColor) {
+      styles.push(`background-color: ${r7.BackgroundColor}`);
+    }
+    if (r7.BorderColor) {
+      styles.push(`border-color: ${r7.BorderColor}`);
+    }
+    if (r7.TextColor) {
+      styles.push(`color: ${r7.TextColor}`);
+    }
+    if (styles.length) {
+      result.style = styles.join("; ");
+    }
     return result;
   }
   function recToRow(record) {
@@ -52929,6 +52957,9 @@ input.vis-configuration.vis-config-range:focus::-ms-fill-upper {
       return false;
     }
     if (a4.type !== b4.type) {
+      return false;
+    }
+    if (a4.style !== b4.style) {
       return false;
     }
     return true;

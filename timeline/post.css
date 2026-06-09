@@ -33,6 +33,8 @@
   background-color: #16b378;
   border-color: #009058;
   color: white;
+  /* Kept even for items with a custom inline color, so selection stays visible. */
+  box-shadow: 0 0 0 2px #009058;
 }
 
 .grist_row {

@@ -112,6 +112,7 @@ export interface Item {
   className: string;
   data: any;
   editable: boolean;
+  style?: string;
 
   group?: number;
   element?: HTMLElement;
