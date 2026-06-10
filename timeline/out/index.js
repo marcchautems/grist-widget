@@ -53150,6 +53150,7 @@ input.vis-configuration.vis-config-range:focus::-ms-fill-upper {
     document.getElementById("fitButton").addEventListener("click", () => autoFit(true));
     document.getElementById("rowHeightInButton").addEventListener("click", () => adjustRowHeight(2));
     document.getElementById("rowHeightOutButton").addEventListener("click", () => adjustRowHeight(-2));
+    document.getElementById("printButton").addEventListener("click", printTimeline);
     headerMonitor.start();
     const itemMenu = new import_vanilla_context_menu.default({
       scope: fore,
@@ -53393,6 +53394,17 @@ input.vis-configuration.vis-config-range:focus::-ms-fill-upper {
       await grist.selectedTable.create({ fields });
     });
   }
+  function printTimeline() {
+    timeline.setOptions({ height: "auto", verticalScroll: false });
+    requestAnimationFrame(() => {
+      timeline.redraw();
+      requestAnimationFrame(() => window.print());
+    });
+  }
+  window.addEventListener("afterprint", () => {
+    timeline.setOptions({ height: "100%", verticalScroll: true });
+    timeline.redraw();
+  });
   function autoFit(animation = false) {
     const window2 = timeline.getWindow();
     const end = window2.end;

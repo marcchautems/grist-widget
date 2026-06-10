@@ -760,6 +760,8 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('rowHeightInButton')!.addEventListener('click', () => adjustRowHeight(2));
   document.getElementById('rowHeightOutButton')!.addEventListener('click', () => adjustRowHeight(-2));
 
+  document.getElementById('printButton')!.addEventListener('click', printTimeline);
+
 
   headerMonitor.start();
 
@@ -1074,6 +1076,25 @@ async function duplicateSelected(ev: MouseEvent) {
   });
 }
 
+
+/**
+ * Printing only captures what's currently rendered on screen, but vis-timeline
+ * normally clips its content to the widget height and scrolls vertically. To print
+ * the whole vertical extent, temporarily switch to an auto-sizing, non-scrolling
+ * layout (so every group/row is laid out and visible), print, then restore.
+ */
+function printTimeline() {
+  timeline.setOptions({height: 'auto', verticalScroll: false});
+  requestAnimationFrame(() => {
+    timeline.redraw();
+    requestAnimationFrame(() => window.print());
+  });
+}
+
+window.addEventListener('afterprint', () => {
+  timeline.setOptions({height: '100%', verticalScroll: true});
+  timeline.redraw();
+});
 
 function autoFit(animation = false) {
   const window = timeline.getWindow();
