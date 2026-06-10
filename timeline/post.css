@@ -10,35 +10,13 @@
   border: none;
 }
 
-/* Print button (inspired by the printlabels/invoices widgets) */
-div.print {
-  position: fixed;
-  left: 0;
-  bottom: 0;
-  z-index: 1000;
-}
-div.print a {
-  background: #16B378;
-  display: block;
-  font-size: 200%;
-  color: white;
-  text-decoration: none;
-  padding: 0.25em 0.5em 0.25em 0.25em;
-  border-top-right-radius: 0.5em;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-div.print a:hover {
-  background: #4682B4;
-}
-
 @media print {
   .vis-item {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
-  div.print, #status-bar, #buttons, .group-header .top, .resizer {
+  #status-bar, #buttons, .group-header .top, .resizer {
     display: none !important;
   }
 
