@@ -124,8 +124,8 @@ select.config {
   display: flex;
   justify-content: space-between;
   min-height: 0px;
-  height: 23px;
+  height: var(--item-height, 23px);
   line-height: 1em;
   align-items: center;
-  padding: 2px 4px;
+  padding: var(--item-vpadding, 2px) 4px;
 }

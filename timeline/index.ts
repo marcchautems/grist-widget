@@ -821,6 +821,11 @@ let rowVPadding = 5;
 
 function applyRowHeight(padding: number) {
   container.style.setProperty('--row-vpadding', `${padding}px`);
+  // Scale item height/padding alongside the group row padding, so items don't
+  // become the limiting factor in vis-timeline's `_calculateHeight` (which uses
+  // the max of label height and item height) and stop the row from shrinking.
+  container.style.setProperty('--item-height', `${13 + 2 * padding}px`);
+  container.style.setProperty('--item-vpadding', `${Math.max(0, padding - 3)}px`);
   timeline.redraw();
 }
 
