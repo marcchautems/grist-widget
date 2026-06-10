@@ -52745,13 +52745,14 @@ input.vis-configuration.vis-config-range:focus::-ms-fill-upper {
         container2.classList.add("group-empty");
         return container2;
       }
-      const columnsDivs = group.columns.map((col) => {
+      const colIds = mappings.get().Columns ?? [];
+      const columnsDivs = group.columns.map((col, i8) => {
         const div = document.createElement("div");
         const value = stringToValue(col);
         if (typeof value === "string" || value === null) {
           div.innerText = valueToString(value);
         } else if (typeof value === "number") {
-          div.innerText = formatCurrency.format(value);
+          div.innerText = formatColumnNumber(value, colIds[i8]);
         } else if (typeof value === "boolean") {
           div.innerHTML = `<input type="checkbox" ${value ? "checked" : ""} disabled>`;
         } else if (Array.isArray(value)) {
@@ -53028,10 +53029,21 @@ input.vis-configuration.vis-config-range:focus::-ms-fill-upper {
     array2.forEach((x3) => oldRecs.set(x3.id, x3));
     itemSet.update(array2);
   }
-  var formatCurrency = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD"
-  });
+  function formatColumnNumber(value, colId) {
+    const col = colId ? DATA.schema?.allColumns.find((c6) => c6.colId === colId && c6.parentId === DATA.schema.table.id) : void 0;
+    let widgetOptions = {};
+    try {
+      widgetOptions = JSON.parse(col?.widgetOptions || "{}");
+    } catch {
+    }
+    if (widgetOptions.numMode === "currency") {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: widgetOptions.currency || "USD"
+      }).format(value);
+    }
+    return Number.isInteger(value) ? value.toString() : value.toFixed(2);
+  }
   function renderAllItems() {
     renderItems();
     renderGroups();

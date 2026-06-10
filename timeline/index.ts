@@ -260,13 +260,14 @@ const options: TimelineOptions = {
       return container;
     }
 
-    const columnsDivs: HTMLDivElement[] = group.columns.map(col => {
+    const colIds: string[] = mappings.get().Columns ?? [];
+    const columnsDivs: HTMLDivElement[] = group.columns.map((col, i) => {
       const div = document.createElement('div');
       const value = stringToValue(col);
       if (typeof value === 'string' || value === null) {
         div.innerText = valueToString(value);
       } else if (typeof value === 'number') {
-        div.innerText = formatCurrency.format(value);
+        div.innerText = formatColumnNumber(value, colIds[i]);
       } else if (typeof value === 'boolean') {
         div.innerHTML = `<input type="checkbox" ${value ? 'checked' : '' } disabled>`;
       } else if (Array.isArray(value)) {
@@ -601,10 +602,30 @@ function renderItems() {
 
   itemSet.update(array);
 }
-const formatCurrency = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-});
+/**
+ * Formats a numeric group column value, using the underlying Grist column's
+ * widget options to decide whether it's a currency (and which one) or a plain
+ * number. Without this, any numeric column (e.g. a "Year") would otherwise be
+ * rendered using a hardcoded USD currency format.
+ */
+function formatColumnNumber(value: number, colId: string | undefined) {
+  const col = colId
+    ? DATA.schema?.allColumns.find(c => c.colId === colId && c.parentId === DATA.schema!.table.id)
+    : undefined;
+  let widgetOptions: any = {};
+  try {
+    widgetOptions = JSON.parse(col?.widgetOptions || '{}');
+  } catch {
+    // ignore malformed widget options
+  }
+  if (widgetOptions.numMode === 'currency') {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: widgetOptions.currency || 'USD',
+    }).format(value);
+  }
+  return Number.isInteger(value) ? value.toString() : value.toFixed(2);
+}
 
 function renderAllItems() {
   renderItems();
