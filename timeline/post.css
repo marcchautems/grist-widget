@@ -10,6 +10,13 @@
   border: none;
 }
 
+@media print {
+  .vis-item {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
 .vis-labelset .vis-label {
   color: var(--grist-theme-text, black) !important;
 }
