@@ -826,11 +826,15 @@ function applyRowHeight(padding: number) {
   // the max of label height and item height) and stop the row from shrinking.
   container.style.setProperty('--item-height', `${13 + 2 * padding}px`);
   container.style.setProperty('--item-vpadding', `${Math.max(0, padding - 3)}px`);
-  // vis-timeline caches each item's measured box height and only remeasures it
-  // when the item is marked dirty. Re-feeding the items forces that remeasurement,
-  // so the row/group height (which is derived from item.height) updates immediately
-  // instead of only after a page reload.
-  itemSet.update(itemSet.get());
+  // vis-timeline only measures an item's box height once, when it is first displayed,
+  // and never re-measures already-displayed items afterwards (it only grows the group
+  // height when a newly-visible item turns out to be taller). So shrinking the CSS
+  // size of already-rendered items has no effect on the group height until those items
+  // are recreated. Force that by removing and re-adding all items, so every item is
+  // treated as new and gets remeasured on the next redraw.
+  const allItems = itemSet.get();
+  itemSet.clear();
+  itemSet.add(allItems);
   timeline.redraw();
   requestAnimationFrame(() => timeline.redraw());
 }
