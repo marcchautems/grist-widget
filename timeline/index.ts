@@ -827,6 +827,10 @@ function applyRowHeight(padding: number) {
   container.style.setProperty('--item-height', `${13 + 2 * padding}px`);
   container.style.setProperty('--item-vpadding', `${Math.max(0, padding - 3)}px`);
   timeline.redraw();
+  // vis-timeline only measures the new label/item heights *during* a redraw, but uses
+  // the height from the previous redraw to size the row. So one redraw isn't enough to
+  // reflect the change immediately; trigger a follow-up redraw once the first completes.
+  requestAnimationFrame(() => timeline.redraw());
 }
 
 async function adjustRowHeight(delta: number) {
