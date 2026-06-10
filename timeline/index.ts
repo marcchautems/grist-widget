@@ -274,7 +274,6 @@ const options: TimelineOptions = {
         div.innerText = value.join(', ');
       }
       div.classList.add('group-part');
-      div.style.padding = '5px';
       return div;
     });
 
@@ -758,6 +757,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   document.getElementById('fitButton')!.addEventListener('click', () => autoFit(true));
 
+  document.getElementById('rowHeightInButton')!.addEventListener('click', () => adjustRowHeight(2));
+  document.getElementById('rowHeightOutButton')!.addEventListener('click', () => adjustRowHeight(-2));
+
 
   headerMonitor.start();
 
@@ -809,7 +811,24 @@ grist.onOptions((options: any) => {
   if (options?.editCard !== undefined) {
     editCard.set(options.editCard ?? false);
   }
+  if (options?.rowVPadding !== undefined) {
+    rowVPadding = options.rowVPadding ?? 5;
+    applyRowHeight(rowVPadding);
+  }
 });
+
+let rowVPadding = 5;
+
+function applyRowHeight(padding: number) {
+  container.style.setProperty('--row-vpadding', `${padding}px`);
+  timeline.redraw();
+}
+
+async function adjustRowHeight(delta: number) {
+  rowVPadding = Math.max(0, Math.min(15, rowVPadding + delta));
+  applyRowHeight(rowVPadding);
+  await grist.setOption('rowVPadding', rowVPadding);
+}
 
 
 function zip<T, V>(a: T[], b: V[]): [T, V][] {

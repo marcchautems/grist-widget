@@ -52758,7 +52758,6 @@ input.vis-configuration.vis-config-range:focus::-ms-fill-upper {
           div.innerText = value.join(", ");
         }
         div.classList.add("group-part");
-        div.style.padding = "5px";
         return div;
       });
       columnsDivs.push((() => {
@@ -53149,6 +53148,8 @@ input.vis-configuration.vis-config-range:focus::-ms-fill-upper {
       timeline.fit();
     });
     document.getElementById("fitButton").addEventListener("click", () => autoFit(true));
+    document.getElementById("rowHeightInButton").addEventListener("click", () => adjustRowHeight(2));
+    document.getElementById("rowHeightOutButton").addEventListener("click", () => adjustRowHeight(-2));
     headerMonitor.start();
     const itemMenu = new import_vanilla_context_menu.default({
       scope: fore,
@@ -53194,7 +53195,21 @@ input.vis-configuration.vis-config-range:focus::-ms-fill-upper {
     if (options2?.editCard !== void 0) {
       editCard.set(options2.editCard ?? false);
     }
+    if (options2?.rowVPadding !== void 0) {
+      rowVPadding = options2.rowVPadding ?? 5;
+      applyRowHeight(rowVPadding);
+    }
   });
+  var rowVPadding = 5;
+  function applyRowHeight(padding) {
+    container.style.setProperty("--row-vpadding", `${padding}px`);
+    timeline.redraw();
+  }
+  async function adjustRowHeight(delta) {
+    rowVPadding = Math.max(0, Math.min(15, rowVPadding + delta));
+    applyRowHeight(rowVPadding);
+    await grist.setOption("rowVPadding", rowVPadding);
+  }
   function zip(a4, b4) {
     return a4.map((e9, i8) => [e9, b4[i8]]);
   }
