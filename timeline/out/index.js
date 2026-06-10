@@ -53205,6 +53205,7 @@ input.vis-configuration.vis-config-range:focus::-ms-fill-upper {
     container.style.setProperty("--row-vpadding", `${padding}px`);
     container.style.setProperty("--item-height", `${13 + 2 * padding}px`);
     container.style.setProperty("--item-vpadding", `${Math.max(0, padding - 3)}px`);
+    itemSet.update(itemSet.get());
     timeline.redraw();
     requestAnimationFrame(() => timeline.redraw());
   }
