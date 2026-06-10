@@ -53208,8 +53208,13 @@ input.vis-configuration.vis-config-range:focus::-ms-fill-upper {
     const allItems = itemSet.get();
     itemSet.clear();
     itemSet.add(allItems);
-    timeline.redraw();
-    requestAnimationFrame(() => timeline.redraw());
+    timeline.setGroups(groupSet);
+    const win2 = timeline.getWindow();
+    timeline.setWindow(win2.start, new Date(win2.end.getTime() - 1), { animation: false });
+    requestAnimationFrame(() => {
+      timeline.setWindow(win2.start, win2.end, { animation: false });
+      requestAnimationFrame(() => timeline.redraw());
+    });
   }
   async function adjustRowHeight(delta) {
     rowVPadding = Math.max(0, Math.min(15, rowVPadding + delta));

@@ -830,13 +830,23 @@ function applyRowHeight(padding: number) {
   // and never re-measures already-displayed items afterwards (it only grows the group
   // height when a newly-visible item turns out to be taller). So shrinking the CSS
   // size of already-rendered items has no effect on the group height until those items
-  // are recreated. Force that by removing and re-adding all items, so every item is
-  // treated as new and gets remeasured on the next redraw.
+  // are recreated. Force that by removing and re-adding all items/groups, so every item
+  // is treated as new and gets remeasured.
   const allItems = itemSet.get();
   itemSet.clear();
   itemSet.add(allItems);
-  timeline.redraw();
-  requestAnimationFrame(() => timeline.redraw());
+  timeline.setGroups(groupSet);
+
+  // Recreating items only resets their cached size; vis-timeline only actually
+  // remeasures (and restacks) items during a "restack" pass, which it triggers
+  // internally on zoom or scroll. Nudge the visible window and restore it to force
+  // that restack so the new (smaller) row height applies immediately.
+  const win = timeline.getWindow();
+  timeline.setWindow(win.start, new Date(win.end.getTime() - 1), {animation: false});
+  requestAnimationFrame(() => {
+    timeline.setWindow(win.start, win.end, {animation: false});
+    requestAnimationFrame(() => timeline.redraw());
+  });
 }
 
 async function adjustRowHeight(delta: number) {
