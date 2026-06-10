@@ -1084,6 +1084,7 @@ async function duplicateSelected(ev: MouseEvent) {
  * layout (so every group/row is laid out and visible), print, then restore.
  */
 function printTimeline() {
+  document.body.classList.add('printing');
   timeline.setOptions({height: 'auto', verticalScroll: false});
   requestAnimationFrame(() => {
     timeline.redraw();
@@ -1092,6 +1093,7 @@ function printTimeline() {
 }
 
 window.addEventListener('afterprint', () => {
+  document.body.classList.remove('printing');
   timeline.setOptions({height: '100%', verticalScroll: true});
   timeline.redraw();
 });

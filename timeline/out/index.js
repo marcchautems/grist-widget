@@ -53395,6 +53395,7 @@ input.vis-configuration.vis-config-range:focus::-ms-fill-upper {
     });
   }
   function printTimeline() {
+    document.body.classList.add("printing");
     timeline.setOptions({ height: "auto", verticalScroll: false });
     requestAnimationFrame(() => {
       timeline.redraw();
@@ -53402,6 +53403,7 @@ input.vis-configuration.vis-config-range:focus::-ms-fill-upper {
     });
   }
   window.addEventListener("afterprint", () => {
+    document.body.classList.remove("printing");
     timeline.setOptions({ height: "100%", verticalScroll: true });
     timeline.redraw();
   });

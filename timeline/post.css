@@ -19,16 +19,17 @@
   #status-bar, #buttons, .group-header .top, .resizer {
     display: none !important;
   }
+}
 
-  /* Let the timeline grow to its full content height instead of clipping to the
-     viewport, so the whole vertical scroll area is printed. JS switches the
-     timeline to `height: 'auto'` before printing so vis-timeline lays out its
-     panels at their full size; these rules just stop the surrounding containers
-     from re-clipping that to the screen height. */
-  html, body, #visualization {
-    height: auto !important;
-    overflow: visible !important;
-  }
+/* Applied by JS just before printing (and removed afterwards). Lets the timeline
+   grow to its full content height instead of clipping to the viewport, so
+   vis-timeline measures and lays out every group/item before window.print() is
+   called - relying on @media print alone is too late, since vis-timeline computes
+   its layout from the on-screen size before the print stylesheet kicks in. */
+body.printing,
+body.printing #visualization {
+  height: auto !important;
+  overflow: visible !important;
 }
 
 .vis-labelset .vis-label {
