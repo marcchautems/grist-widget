@@ -53327,7 +53327,7 @@ input.vis-configuration.vis-config-range:focus::-ms-fill-upper {
     const groupInfo = mappings.get().GroupInfo ?? [];
     const colInfo = mappings.get().Columns ?? [];
     const labels = [...colInfo, ...groupInfo];
-    const values3 = [...item.data.GroupInfo ?? [], ...item.data.Columns ?? []];
+    const values3 = [...item.data.Columns ?? [], ...item.data.GroupInfo ?? []];
     const obj = zip(labels, values3);
     for (const [label, value] of obj) {
       drawerInfo.innerHTML += `<div class="line">

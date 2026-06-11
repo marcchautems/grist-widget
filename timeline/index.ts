@@ -1005,7 +1005,7 @@ function openGroupDrawer(groupId: number) {
   const colInfo = mappings.get().Columns ?? [];
 
   const labels = [...colInfo, ...groupInfo];
-  const values = [...(item.data.GroupInfo ?? []), ...(item.data.Columns ?? [])];
+  const values = [...(item.data.Columns ?? []), ...(item.data.GroupInfo ?? [])];
   const obj = zip(labels, values);
 
   for (const [label, value] of obj) {
