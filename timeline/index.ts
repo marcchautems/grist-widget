@@ -1098,24 +1098,73 @@ async function duplicateSelected(ev: MouseEvent) {
 }
 
 
+function nextFrame(): Promise<void> {
+  return new Promise(resolve => requestAnimationFrame(() => resolve()));
+}
+
+/**
+ * vis-timeline only renders (attaches to the DOM) the groups that fit within its
+ * current pixel height - everything else is considered "not visible" and skipped,
+ * even with `verticalScroll: false`. Recreating the items/groups and nudging the
+ * window forces vis-timeline to redo this visibility check and restack, which is
+ * needed any time the timeline's height or row sizing changes programmatically.
+ */
+function forceRestack() {
+  const allItems = itemSet.get();
+  itemSet.clear();
+  itemSet.add(allItems);
+  timeline.setGroups(groupSet);
+  const win = timeline.getWindow();
+  timeline.setWindow(win.start, new Date(win.end.getTime() - 1), {animation: false});
+}
+
 /**
  * Printing only captures what's currently rendered on screen, but vis-timeline
  * normally clips its content to the widget height and scrolls vertically. To print
- * the whole vertical extent, temporarily switch to an auto-sizing, non-scrolling
- * layout (so every group/row is laid out and visible), print, then restore.
+ * the whole vertical extent we need every group to be rendered, which requires the
+ * timeline's height to be at least as tall as its full content - but we don't know
+ * that height up front. So this is done in two passes: first grow the timeline to a
+ * very large height (forcing every group to render so it can be measured), then
+ * shrink it to the measured content height so printing doesn't produce pages of
+ * blank space.
  */
-function printTimeline() {
+async function printTimeline() {
   document.body.classList.add('printing');
-  timeline.setOptions({height: 'auto', verticalScroll: false});
-  requestAnimationFrame(() => {
-    timeline.redraw();
-    requestAnimationFrame(() => window.print());
-  });
+  const win = timeline.getWindow();
+
+  // Pass 1: grow to a height larger than any realistic content, so every group
+  // becomes "visible" to vis-timeline and gets rendered/measured.
+  timeline.setOptions({height: '20000px', verticalScroll: false});
+  forceRestack();
+  await nextFrame();
+  timeline.setWindow(win.start, win.end, {animation: false});
+  await nextFrame();
+  timeline.redraw();
+  await nextFrame();
+
+  // Pass 2: measure the real total content height and shrink to fit exactly.
+  const labelSet = document.querySelector('.vis-labelset') as HTMLElement | null;
+  const axis = document.querySelector('.vis-time-axis.vis-foreground') as HTMLElement | null;
+  const contentHeight = (labelSet?.scrollHeight ?? 0) + (axis?.offsetHeight ?? 0) + 2;
+  timeline.setOptions({height: `${contentHeight}px`});
+  forceRestack();
+  await nextFrame();
+  timeline.setWindow(win.start, win.end, {animation: false});
+  await nextFrame();
+  timeline.redraw();
+  await nextFrame();
+
+  window.print();
 }
 
-window.addEventListener('afterprint', () => {
+window.addEventListener('afterprint', async () => {
   document.body.classList.remove('printing');
+  const win = timeline.getWindow();
   timeline.setOptions({height: '100%', verticalScroll: true});
+  forceRestack();
+  await nextFrame();
+  timeline.setWindow(win.start, win.end, {animation: false});
+  await nextFrame();
   timeline.redraw();
 });
 

@@ -39490,9 +39490,9 @@ ${nestedRules}`.replace(/&/g, className);
        */
     }, {
       key: "_redrawItems",
-      value: function _redrawItems(forceRestack, lastIsVisible, margin, range) {
+      value: function _redrawItems(forceRestack2, lastIsVisible, margin, range) {
         var _this2 = this;
-        var restack = forceRestack || this.stackDirty || this.isVisible && !lastIsVisible;
+        var restack = forceRestack2 || this.stackDirty || this.isVisible && !lastIsVisible;
         if (restack) {
           var _context2, _context3, _context4, _context5, _context6, _context7;
           var orderedItems = {
@@ -39647,14 +39647,14 @@ ${nestedRules}`.replace(/&/g, className);
        */
     }, {
       key: "redraw",
-      value: function redraw(range, margin, forceRestack, returnQueue) {
+      value: function redraw(range, margin, forceRestack2, returnQueue) {
         var _this3 = this, _context17, _context18, _context21, _context23, _context27;
         var resized = false;
         var lastIsVisible = this.isVisible;
         var height;
         var queue2 = [
           function() {
-            forceRestack = _this3._didMarkerHeightChange.call(_this3) || forceRestack;
+            forceRestack2 = _this3._didMarkerHeightChange.call(_this3) || forceRestack2;
           },
           // recalculate the height of the subgroups
           _bindInstanceProperty$1(_context17 = this._updateSubGroupHeights).call(_context17, this, margin),
@@ -39666,7 +39666,7 @@ ${nestedRules}`.replace(/&/g, className);
           },
           function() {
             var _context20;
-            _bindInstanceProperty$1(_context20 = _this3._redrawItems).call(_context20, _this3)(forceRestack, lastIsVisible, margin, range);
+            _bindInstanceProperty$1(_context20 = _this3._redrawItems).call(_context20, _this3)(forceRestack2, lastIsVisible, margin, range);
           },
           // update subgroups
           _bindInstanceProperty$1(_context21 = this._updateSubgroupsSizes).call(_context21, this),
@@ -40310,7 +40310,7 @@ ${nestedRules}`.replace(/&/g, className);
     }
     _createClass(BackgroundGroup2, [{
       key: "redraw",
-      value: function redraw(range, margin, forceRestack) {
+      value: function redraw(range, margin, forceRestack2) {
         var resized = false;
         this.visibleItems = this._updateItemsInRange(this.orderedItems, this.visibleItems, range);
         this.width = this.dom.background.offsetWidth;
@@ -44189,7 +44189,7 @@ ${nestedRules}`.replace(/&/g, className);
         var scrolled = range.start != this.lastRangeStart;
         var changedStackOption = options2.stack != this.lastStack;
         var changedStackSubgroupsOption = options2.stackSubgroups != this.lastStackSubgroups;
-        var forceRestack = zoomed || scrolled || changedStackOption || changedStackSubgroupsOption;
+        var forceRestack2 = zoomed || scrolled || changedStackOption || changedStackSubgroupsOption;
         this.lastVisibleInterval = visibleInterval;
         this.lastRangeStart = range.start;
         this.lastStack = options2.stack;
@@ -44206,14 +44206,14 @@ ${nestedRules}`.replace(/&/g, className);
         };
         var height = 0;
         var minHeight = margin.axis + margin.item.vertical;
-        this.groups[BACKGROUND].redraw(range, nonFirstMargin, forceRestack);
+        this.groups[BACKGROUND].redraw(range, nonFirstMargin, forceRestack2);
         var redrawQueue = {};
         var redrawQueueLength = 0;
         _forEachInstanceProperty(availableUtils).call(availableUtils, this.groups, function(group, key2) {
           if (key2 === BACKGROUND) return;
           var groupMargin = group == firstGroup ? firstMargin : nonFirstMargin;
           var returnQueue = true;
-          redrawQueue[key2] = group.redraw(range, groupMargin, forceRestack, returnQueue);
+          redrawQueue[key2] = group.redraw(range, groupMargin, forceRestack2, returnQueue);
           redrawQueueLength = redrawQueue[key2].length;
         });
         var needRedraw = redrawQueueLength > 0;
@@ -53406,17 +53406,47 @@ input.vis-configuration.vis-config-range:focus::-ms-fill-upper {
       await grist.selectedTable.create({ fields });
     });
   }
-  function printTimeline() {
-    document.body.classList.add("printing");
-    timeline.setOptions({ height: "auto", verticalScroll: false });
-    requestAnimationFrame(() => {
-      timeline.redraw();
-      requestAnimationFrame(() => window.print());
-    });
+  function nextFrame() {
+    return new Promise((resolve2) => requestAnimationFrame(() => resolve2()));
   }
-  window.addEventListener("afterprint", () => {
+  function forceRestack() {
+    const allItems = itemSet.get();
+    itemSet.clear();
+    itemSet.add(allItems);
+    timeline.setGroups(groupSet);
+    const win2 = timeline.getWindow();
+    timeline.setWindow(win2.start, new Date(win2.end.getTime() - 1), { animation: false });
+  }
+  async function printTimeline() {
+    document.body.classList.add("printing");
+    const win2 = timeline.getWindow();
+    timeline.setOptions({ height: "20000px", verticalScroll: false });
+    forceRestack();
+    await nextFrame();
+    timeline.setWindow(win2.start, win2.end, { animation: false });
+    await nextFrame();
+    timeline.redraw();
+    await nextFrame();
+    const labelSet = document.querySelector(".vis-labelset");
+    const axis = document.querySelector(".vis-time-axis.vis-foreground");
+    const contentHeight = (labelSet?.scrollHeight ?? 0) + (axis?.offsetHeight ?? 0) + 2;
+    timeline.setOptions({ height: `${contentHeight}px` });
+    forceRestack();
+    await nextFrame();
+    timeline.setWindow(win2.start, win2.end, { animation: false });
+    await nextFrame();
+    timeline.redraw();
+    await nextFrame();
+    window.print();
+  }
+  window.addEventListener("afterprint", async () => {
     document.body.classList.remove("printing");
+    const win2 = timeline.getWindow();
     timeline.setOptions({ height: "100%", verticalScroll: true });
+    forceRestack();
+    await nextFrame();
+    timeline.setWindow(win2.start, win2.end, { animation: false });
+    await nextFrame();
     timeline.redraw();
   });
   function autoFit(animation = false) {
